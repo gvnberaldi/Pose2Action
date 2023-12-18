@@ -1,0 +1,24 @@
+# macOS specific files
+.DS_Store
+
+# Visual Studio Code settings
+.vscode/
+
+# pytest cache
+.pytest_cache/
+
+# Development container configuration
+.devcontainer/
+
+# Python pycache
+__pycache__/
+
+# Weights & Biases
+wandb/
+
+# Ignore application logs
+log_*
+
+# Ignore old pytorch
+/caa/Homes01/iballester/dev-svr/p4t-bad/modules-pytorch-1.4.0
+
