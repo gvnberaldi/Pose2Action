@@ -1,8 +1,7 @@
 import yaml
 import sys
-
-import yaml
-import sys
+import const.path as path
+import os
 
 def load_config(config_file):
     with open(config_file, 'r') as stream:
@@ -14,14 +13,11 @@ def load_config(config_file):
         except yaml.YAMLError as exc:
             print(exc)
             sys.exit(1)
-    return config
 
-def construct_data_paths(config):
-    bad_train = config['bad_train']
-    bad_test = config['bad_test']
-
-    config['data_train_path'] = '/data/iballester/datasets/MSRAction3D_Output'
-    config['data_test_path'] = '/data/iballester/datasets/MSRAction3D_Output'
+    if config['dataset'] == 'MSRA':
+        config['dataset_path'] = path.MSRACTION_PATH
+    
+    if config['output_dir']:
+        os.makedirs(config['output_dir'], exist_ok=True)
 
     return config
-

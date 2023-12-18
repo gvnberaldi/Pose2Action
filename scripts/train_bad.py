@@ -26,7 +26,7 @@ import models.msr as Models
 
 from sklearn.metrics import confusion_matrix
 
-import losses
+import learning.losses as losses
 import argparse
 from config.config import load_config, construct_data_paths
 

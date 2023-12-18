@@ -1,10 +1,10 @@
 # Configurations for model training
-bad_train: 'MSRA'
-bad_test: 'MSRA'
-device_args: 5
+dataset: 'MSRA'
+device_args: 3
 wandb_active: false
 seed: 0
 model: 'P4Transformer'
+wandb_project: 'ar4pc_ev'
 # input
 clip_len: 24
 frame_interval: 1
@@ -24,6 +24,9 @@ depth: 5
 heads: 8
 dim_head: 64
 mlp_dim: 512
+
+
+
 # training
 batch_size: 14
 epochs: 50
@@ -42,8 +45,6 @@ output_dir: ""
 resume: ''
 start_epoch: 0
     # losses
-
-
 loss_type: 'std_cross_entropy'   # choices=['std_cross_entropy', 'weighted_cross_entropy', 'focal'],
 save: True
 
