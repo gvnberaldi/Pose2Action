@@ -4,7 +4,9 @@ import const.path as path
 import os
 
 def load_config(config_file):
-    with open(config_file, 'r') as stream:
+
+    path_config_file = os.path.join(path.EXPERIMENTS_PATH, config_file, 'config.yaml')
+    with open(path_config_file, 'r') as stream:
         try:
             config = yaml.safe_load(stream)
             # Convert specific values to floats

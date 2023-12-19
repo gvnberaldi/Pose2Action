@@ -61,8 +61,6 @@ class MSRAction3D(Dataset):
             clip[i] = p[r, :]
         clip = np.array(clip)
 
-        #here augmentations missing!
-
         if self.train:
             # scale the points
             scales = np.random.uniform(0.9, 1.1, size=3)
@@ -71,9 +69,9 @@ class MSRAction3D(Dataset):
         clip = clip / 300
 
         return clip.astype(np.float32), label, index, []
-    
+
 if __name__ == '__main__':
-    dataset = MSRAction3D(root='/data/iballester/datasets/MSRAction3D_Output/', frames_per_clip=16)
+    dataset = MSRAction3D(root='../data/msr_action', frames_per_clip=16)
     clip, label, video_idx = dataset[0]
     print(clip)
     print(label)

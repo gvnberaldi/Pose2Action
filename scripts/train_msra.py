@@ -21,17 +21,14 @@ import torchvision
 from tqdm import tqdm
 import wandb
 import utils
-from sklearn.metrics import f1_score
 from scheduler import WarmupMultiStepLR
 from datasets.msr import MSRAction3D
 import models.msr as Models
-from sklearn.metrics import confusion_matrix
 import learning.losses as losses
 import argparse
-from experiments.P4T_MSRA.generate_config import load_config
+from config.generate_config import load_config
 import numpy as np
 import torch
-from sklearn.metrics import accuracy_score
 
 
 def train_one_epoch(model, criterion, optimizer, lr_scheduler, data_loader, device, epoch):
@@ -115,7 +112,7 @@ def main(args):
 
     config = load_config(args.config)
 
-    wandb.init(project=config['wandb_project'])
+    wandb.init(project=config['wandb_project'],name=args.config)
     wandb.config.update(config)
     wandb.watch_called = False
 
@@ -174,6 +171,11 @@ def main(args):
             mlp_dim=config['mlp_dim'],
             num_classes=dataset.num_classes
         )
+    elif config['model'] == 'PSTNet':
+        model = Model(
+            radius=config['radius'],
+            nsamples=config['nsamples'],
+            num_classes=dataset.num_classes)
 
     model.to(device)
 
@@ -241,7 +243,7 @@ def main(args):
         print(f"Epoch {epoch} - Train Loss: {train_clip_loss:.4f}, Train Acc@1: {train_clip_acc:.4f}")
         print(f"Epoch {epoch} - Validation Loss: {val_clip_loss:.4f}, Validation Acc@1: {val_clip_acc:.4f}, Validation Video Acc@1: {val_video_acc:.4f}")
         print(f"Epoch {epoch} - Average Validation Video Class Acc: {val_average_video_class_acc:.4f}")
-        print(f"Epoch {epoch} - Validation Video Class Acc: {val_list_video_class_acc.tolist()}, Validation Avg Video Class Acc: {val_average_video_class_acc:.4f}")
+        print(f"Epoch {epoch} - Validation Video Class Acc: {val_list_video_class_acc.tolist()}")
 
 
         if config['output_dir'] and utils.is_main_process():
@@ -258,6 +260,13 @@ def main(args):
             torch.save(
                 checkpoint, os.path.join(config['output_dir'], 'checkpoint.pth')
             ) 
+        
+        if val_video_acc > acc:
+            acc = val_video_acc
+#            if config['output_dir'] and utils.is_main_process():
+#                torch.save(
+#                    checkpoint, os.path.join(config['output_dir'], 'best_model.pth')
+#                )
 
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
@@ -268,6 +277,6 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='P4Transformer Model Training')
-    parser.add_argument('--config', type=str, default='/caa/Homes01/iballester/dev-svr/ar4pc_ev/experiments/P4T_MSRA/experiment_1/config.yaml', help='Path to the YAML config file')
+    parser.add_argument('--config', type=str, default='PSTNet_MSRA/2', help='Path to the YAML config file')
     args = parser.parse_args()
     main(args)
