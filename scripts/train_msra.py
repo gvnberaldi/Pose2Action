@@ -156,6 +156,7 @@ def main(args):
 
     print("Creating model")
     Model = getattr(Models, config['model'])
+    print(config['model'])
     if config['model'] == 'P4Transformer':
         model = Model(
             radius=config['radius'],
@@ -172,6 +173,12 @@ def main(args):
             num_classes=dataset.num_classes
         )
     elif config['model'] == 'PSTNet':
+        model = Model(
+            radius=config['radius'],
+            nsamples=config['nsamples'],
+            num_classes=dataset.num_classes)
+            
+    elif config['model'] == 'PSTNet2':
         model = Model(
             radius=config['radius'],
             nsamples=config['nsamples'],
@@ -263,10 +270,10 @@ def main(args):
         
         if val_video_acc > acc:
             acc = val_video_acc
-#            if config['output_dir'] and utils.is_main_process():
-#                torch.save(
-#                    checkpoint, os.path.join(config['output_dir'], 'best_model.pth')
-#                )
+            if config['output_dir'] and utils.is_main_process():
+                torch.save(
+                    checkpoint, os.path.join(config['output_dir'], 'best_model.pth')
+                )
 
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
@@ -277,6 +284,6 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='P4Transformer Model Training')
-    parser.add_argument('--config', type=str, default='PSTNet_MSRA/2', help='Path to the YAML config file')
+    parser.add_argument('--config', type=str, default='PSTNet2_MSRA/1', help='Path to the YAML config file')
     args = parser.parse_args()
     main(args)
