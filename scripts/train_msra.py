@@ -125,8 +125,7 @@ def main(args):
     utils.set_random_seed(config['seed'])
 
     # Data loading code
-    print("Loading data")
-    print(config['dataset_path'])
+    print("Loading data from", config['dataset_path'])
     dataset = MSRAction3D(
         root=config['dataset_path'],
         frames_per_clip=config['clip_len'],
@@ -154,9 +153,8 @@ def main(args):
 
     print("Number of unique labels (classes):", dataset.num_classes)
 
-    print("Creating model")
     Model = getattr(Models, config['model'])
-    print(config['model'])
+    print("Creating model:", config['model'])
     if config['model'] == 'P4Transformer':
         model = Model(
             radius=config['radius'],
@@ -183,6 +181,23 @@ def main(args):
             radius=config['radius'],
             nsamples=config['nsamples'],
             num_classes=dataset.num_classes)
+    elif config['model'] == 'PSTTransformer':
+        model = Model(
+            radius=config['radius'],
+            nsamples=config['nsamples'],
+            spatial_stride=config['spatial_stride'],
+            temporal_kernel_size=config['temporal_kernel_size'],
+            temporal_stride=config['temporal_stride'],
+            dim=config['dim'],
+            depth=config['depth'],
+            heads=config['heads'],
+            dim_head=config['dim_head'],
+            dropout1=config['dropout1'],
+            mlp_dim=config['mlp_dim'],
+            num_classes=dataset.num_classes,
+            dropout2=config['dropout2']
+        )
+
 
     model.to(device)
 
@@ -281,9 +296,8 @@ def main(args):
     print('Accuracy {}'.format(acc))
 
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='P4Transformer Model Training')
-    parser.add_argument('--config', type=str, default='PSTNet2_MSRA/1', help='Path to the YAML config file')
+    parser.add_argument('--config', type=str, default='PSTT_MSRA/2', help='Path to the YAML config file')
     args = parser.parse_args()
     main(args)
