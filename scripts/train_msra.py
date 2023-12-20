@@ -8,6 +8,7 @@ ROOT_DIR = os.path.dirname(BASE_DIR)
 sys.path.append(ROOT_DIR)
 sys.path.append(os.path.join(ROOT_DIR, 'datasets'))
 sys.path.append(os.path.join(ROOT_DIR, 'experiments'))
+sys.path.append(os.path.join(ROOT_DIR, 'models'))
 
 
 import datetime
@@ -23,12 +24,12 @@ import wandb
 import utils
 from scheduler import WarmupMultiStepLR
 from datasets.msr import MSRAction3D
-import models.msr as Models
 import learning.losses as losses
 import argparse
 from config.generate_config import load_config
 import numpy as np
 import torch
+import models.model_factory as model_factory
 
 
 def train_one_epoch(model, criterion, optimizer, lr_scheduler, data_loader, device, epoch):
@@ -153,51 +154,7 @@ def main(args):
 
     print("Number of unique labels (classes):", dataset.num_classes)
 
-    Model = getattr(Models, config['model'])
-    print("Creating model:", config['model'])
-    if config['model'] == 'P4Transformer':
-        model = Model(
-            radius=config['radius'],
-            nsamples=config['nsamples'],
-            spatial_stride=config['spatial_stride'],
-            temporal_kernel_size=config['temporal_kernel_size'],
-            temporal_stride=config['temporal_stride'],
-            emb_relu=config['emb_relu'],
-            dim=config['dim'],
-            depth=config['depth'],
-            heads=config['heads'],
-            dim_head=config['dim_head'],
-            mlp_dim=config['mlp_dim'],
-            num_classes=dataset.num_classes
-        )
-    elif config['model'] == 'PSTNet':
-        model = Model(
-            radius=config['radius'],
-            nsamples=config['nsamples'],
-            num_classes=dataset.num_classes)
-            
-    elif config['model'] == 'PSTNet2':
-        model = Model(
-            radius=config['radius'],
-            nsamples=config['nsamples'],
-            num_classes=dataset.num_classes)
-    elif config['model'] == 'PSTTransformer':
-        model = Model(
-            radius=config['radius'],
-            nsamples=config['nsamples'],
-            spatial_stride=config['spatial_stride'],
-            temporal_kernel_size=config['temporal_kernel_size'],
-            temporal_stride=config['temporal_stride'],
-            dim=config['dim'],
-            depth=config['depth'],
-            heads=config['heads'],
-            dim_head=config['dim_head'],
-            dropout1=config['dropout1'],
-            mlp_dim=config['mlp_dim'],
-            num_classes=dataset.num_classes,
-            dropout2=config['dropout2']
-        )
-
+    model = model_factory.create_model(config, dataset.num_classes)
 
     if torch.cuda.device_count() > 1:
         model = nn.DataParallel(model)

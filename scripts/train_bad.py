@@ -22,7 +22,7 @@ from sklearn.metrics import f1_score
 from scheduler import WarmupMultiStepLR
 
 from datasets.bad import BAD
-import models.msr as Models
+import models.models_msr as Models
 
 from sklearn.metrics import confusion_matrix
 
