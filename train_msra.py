@@ -3,13 +3,6 @@ import os
 import sys
 
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-ROOT_DIR = os.path.dirname(BASE_DIR)
-sys.path.append(ROOT_DIR)
-sys.path.append(os.path.join(ROOT_DIR, 'datasets'))
-sys.path.append(os.path.join(ROOT_DIR, 'experiments'))
-sys.path.append(os.path.join(ROOT_DIR, 'models'))
-
 
 import datetime
 import time
@@ -21,8 +14,8 @@ import torch.nn.functional as F
 import torchvision
 from tqdm import tqdm
 import wandb
-import utils
-from scheduler import WarmupMultiStepLR
+import scripts.utils as utils
+from scripts.scheduler import WarmupMultiStepLR
 from datasets.msr import MSRAction3D
 import learning.losses as losses
 import argparse
@@ -153,6 +146,7 @@ def main(args):
     
 
     print("Number of unique labels (classes):", dataset.num_classes)
+    
 
     model = model_factory.create_model(config, dataset.num_classes)
 
@@ -258,6 +252,6 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='P4Transformer Model Training')
-    parser.add_argument('--config', type=str, default='PSTNet2_MSRA/2', help='Path to the YAML config file')
+    parser.add_argument('--config', type=str, default='PPTr_MSRA/1', help='Path to the YAML config file')
     args = parser.parse_args()
     main(args)
