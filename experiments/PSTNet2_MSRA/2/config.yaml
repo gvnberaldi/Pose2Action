@@ -1,36 +1,22 @@
 # Configurations for model training
 dataset: 'MSRA'
-device_args: 2, 3
+device_args: 0, 4
 wandb_active: false
 seed: 0
-model: 'PSTTransformer'
+model: 'PSTNet2'
 wandb_project: 'ar4pc_ev'
 # input
 clip_len: 24
 frame_interval: 1
 max_frame_interval: 20
 num_points: 2048
-
-# P4D
-radius: 0.3
-nsamples: 32
-spatial_stride: 32
-temporal_kernel_size: 3
-temporal_stride: 2
-
-# transformer
-dim: 80
-depth: 5
-heads: 82
-dim_head: 40
-mlp_dim: 160
-
-dropout1: 0.0 #transformer dropout
-dropout2: 0.0 #classifier dropout
+# PSTNet2
+radius: 0.7
+nsamples: 9
 
 # training
-batch_size: 14
-epochs: 50
+batch_size: 16
+epochs: 35
 workers: 10
 lr: 0.01
 momentum: 0.9
