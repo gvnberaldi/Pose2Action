@@ -21,7 +21,7 @@ from pst_convolutions import PSTConv
 from pst_operations import PSTOp
 
 #PSTT
-from transformer_v1 import *
+from transformer_v1 import TransformerPSTT
 
 #PPTr
 from models.PPTr_pointnet import pointnet
@@ -330,7 +330,7 @@ class PSTTransformer(nn.Module):
                                   temporal_kernel_size=temporal_kernel_size, temporal_stride=temporal_stride, temporal_padding=[1, 0],
                                   operator='+', spatial_pooling='max', temporal_pooling='max')
 
-        self.transformer = Transformer(dim, depth, heads, dim_head, mlp_dim, dropout=dropout1)
+        self.transformer = TransformerPSTT(dim, depth, heads, dim_head, mlp_dim, dropout=dropout1)
 
         self.mlp_head = nn.Sequential(
             nn.LayerNorm(dim),

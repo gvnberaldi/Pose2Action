@@ -68,7 +68,7 @@ class Attention(nn.Module):
         out = rearrange(out, 'b (l n) d -> b l n d', l=l, n=n)
         return out + features
 
-class Transformer(nn.Module):
+class TransformerPSTT(nn.Module):
     def __init__(self, dim, depth, heads, dim_head, mlp_dim, dropout = 0.):
         super().__init__()
         self.layers = nn.ModuleList([])
