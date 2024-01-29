@@ -15,6 +15,12 @@ from collections import Counter
 
 import tqdm
 
+import seaborn as sns
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.metrics import classification_report
+
+
 
 
 class SmoothedValue(object):
@@ -346,3 +352,14 @@ def set_random_seed(seed):
     torch.cuda.manual_seed(seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
+
+def visualize_report(y_true, y_pred, output_dir):
+    report = classification_report(y_true, y_pred, output_dict=True)
+    df = pd.DataFrame(report).transpose()
+    df = df.sort_values(by=['f1-score'], ascending=False)
+
+    plt.figure(figsize=(10, 10))
+    sns.heatmap(df, annot=True, fmt=".2f", cmap='Blues')
+    plt.title("Classification Report")
+    plt.savefig(os.path.join(output_dir, 'classification_report.png'))
+    plt.close()

@@ -40,7 +40,7 @@ lr_milestones:
 lr_gamma: 0.1
 lr_warmup_epochs: 10
 # output
-output_dir: ""
+log_dir: ""
     # resume
 resume: ''
 start_epoch: 0
@@ -58,36 +58,18 @@ DS_AUGMENTS_CFG:
       - false
 
   - name: RotationAug
-    p_prob: 0.0
-    p_axis: 1
-    p_min_angle: 0.0
-    p_max_angle: 6.28318530718
-    p_apply_extra_tensors:
-      - false
-      - false
-
-  - name: RotationAug
-    p_prob: 0.0
-    p_axis: 0
-    p_min_angle: -0.1308996939
-    p_max_angle: 0.1308996939
-    p_apply_extra_tensors:
-      - false
-      - false
-
-  - name: RotationAug
     p_prob: 1.0
     p_axis: 2
-    p_min_angle: -0.1308996939
-    p_max_angle: 0.1308996939
+    p_min_angle: 0
+    p_max_angle: 2.0*np.pi
     p_apply_extra_tensors:
       - false
       - false
 
   - name: NoiseAug
     p_prob: 1.0
-    p_stddev: 0.005
-    p_clip: 0.02
+    p_stddev: 0.05
+    p_clip: 0.1
     p_apply_extra_tensors:
       - false
       - false
@@ -104,7 +86,7 @@ DS_AUGMENTS_CFG:
       - false
 
   - name: MirrorAug
-    p_prob: 0.0
+    p_prob: 1.0
     p_mirror_prob: 0.5
     p_axes:
       - true

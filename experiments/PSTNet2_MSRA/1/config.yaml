@@ -27,7 +27,7 @@ lr_milestones:
 lr_gamma: 0.1
 lr_warmup_epochs: 10
 # output
-output_dir: ""
+log_dir: ""
     # resume
 resume: ''
 start_epoch: 0

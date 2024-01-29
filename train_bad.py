@@ -13,7 +13,8 @@ import models.model_factory as model_factory
 import scripts.utils as utils
 
 
-from trainer_bad import train_one_epoch, evaluate, load_data, create_criterion, create_optimizer_and_scheduler
+
+from trainer_bad import train_one_epoch, evaluate, load_data, create_criterion, create_optimizer_and_scheduler, final_test
 
 def main(args):
 
@@ -120,7 +121,24 @@ def main(args):
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
     print('Training time {}'.format(total_time_str))
-    print('Accuracy {}'.format(acc))
+
+
+    # Load the best model
+    best_model_path = os.path.join(config['output_dir'], 'best_model.pth')
+    checkpoint = torch.load(best_model_path, map_location='cpu')
+    model_without_ddp.load_state_dict(checkpoint['model'])
+
+    report_str, report_dict = final_test(model_without_ddp, data_loader_test, device=device)
+
+
+    with open(os.path.join(config['output_dir'], 'classification_report.txt'), 'w') as f:
+        f.write(report_str)
+
+    utils.visualize_report(report_dict, config['output_dir'])
+
+
+
+
 
 
 if __name__ == "__main__":

@@ -32,12 +32,15 @@ def load_config(config_file):
         config['data_test_path'] = config['dataset_root'] + '/f_depth_npz_0-8_7'
         config['split_train_path'] = config['dataset_root'] + '/sets_0-8_7.txt'
         config['split_test_path'] = config['dataset_root'] + '/sets_0-8_7.txt'
+
     
     else:
         raise ValueError(f"Dataset {config['dataset']} not found.")
     
     
-    if config['output_dir']:
+    if config['log_dir']:
+        config['output_dir'] = os.path.join(path.EXPERIMENTS_PATH, config_file, config['log_dir'])
+        print(f"Output dir: {config['output_dir']}")
         os.makedirs(config['output_dir'], exist_ok=True)
 
     return config

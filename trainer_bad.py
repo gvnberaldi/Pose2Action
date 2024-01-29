@@ -7,7 +7,7 @@ from learning.losses import FocalLoss
 from datasets.bad import BAD
 import numpy as np
 import scripts.utils as utils
-from sklearn.metrics import f1_score, confusion_matrix
+from sklearn.metrics import f1_score, confusion_matrix, classification_report
 
 
 def train_one_epoch(model, criterion, optimizer, lr_scheduler, data_loader, device, epoch):
@@ -149,3 +149,24 @@ def create_optimizer_and_scheduler(config, model, data_loader):
         optimizer, milestones=lr_milestones, gamma=config['lr_gamma'], warmup_iters=warmup_iters, warmup_factor=1e-5
     )
     return optimizer, lr_scheduler
+
+def final_test(model, data_loader_test, device, output_dir):
+    model.eval()
+    all_preds = []
+    all_targets = []
+    with torch.no_grad():
+        for inputs, targets in data_loader_test:
+            inputs = inputs.to(device)
+            targets = targets.to(device)
+            outputs = model(inputs)
+            _, preds = torch.max(outputs, 1)
+            all_preds.extend(preds.cpu().numpy())
+            all_targets.extend(targets.cpu().numpy())
+
+    report_dict = classification_report(all_targets, all_preds, output_dict=True)
+    report_str = classification_report(all_targets, all_preds)
+    print(report_str)
+
+
+    return report_str, report_dict
+
