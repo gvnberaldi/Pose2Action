@@ -150,7 +150,7 @@ def create_optimizer_and_scheduler(config, model, data_loader):
     )
     return optimizer, lr_scheduler
 
-def final_test(model, data_loader_test, device, output_dir):
+def final_test(model, data_loader_test, device):
     model.eval()
     all_preds = []
     all_targets = []
