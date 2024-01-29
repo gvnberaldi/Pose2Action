@@ -125,6 +125,6 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='P4Transformer Model Training')
-    parser.add_argument('--config', type=str, default='P4T_BAD2/2', help='Path to the YAML config file')
+    parser.add_argument('--config', type=str, default='P4T_BAD2/1', help='Path to the YAML config file')
     args = parser.parse_args()
     main(args)
