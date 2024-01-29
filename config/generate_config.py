@@ -30,8 +30,8 @@ def load_config(config_file):
         config['dataset_root'] = path.BAD2_PATH
         config['data_train_path'] = config['dataset_root'] + '/f_depth_npz_0-8_7'
         config['data_test_path'] = config['dataset_root'] + '/f_depth_npz_0-8_7'
-        config['split_train_path'] = config['dataset_root'] + '/sets_0-8_7.txt'
-        config['split_test_path'] = config['dataset_root'] + '/sets_0-8_7.txt'
+        config['split_train_path'] = config['dataset_root'] + config['split']
+        config['split_test_path'] = config['dataset_root'] + config['split']
 
     
     else:
@@ -44,6 +44,7 @@ def load_config(config_file):
         if not os.path.exists(config['output_dir']):
             os.makedirs(config['output_dir'])
         else:
-            raise FileExistsError(f"Directory {config['output_dir']} already exists")
+            if os.listdir(config['output_dir']):
+                raise FileExistsError(f"Directory {config['output_dir']} already exists and is not empty")
 
     return config
