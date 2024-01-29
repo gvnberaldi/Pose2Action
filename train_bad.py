@@ -74,7 +74,7 @@ def main(args):
     
     for epoch in range(config['start_epoch'], config['epochs']):
         train_clip_loss, train_clip_acc = train_one_epoch(model, criterion, optimizer, lr_scheduler, data_loader, device, epoch)
-        val_clip_loss, val_clip_acc, val_video_acc, val_list_video_class_acc, val_average_video_class_acc  = evaluate(model, criterion, data_loader_test, device=device)
+        val_clip_loss, val_clip_acc, val_video_acc, val_list_video_class_acc, val_average_video_class_acc, f1, confusion_matrix  = evaluate(model, criterion, data_loader_test, device=device)
 
         wandb.log({
             "Train Loss": train_clip_loss,
@@ -83,13 +83,16 @@ def main(args):
             "Val Clip Acc@1": val_clip_acc,
             "Val Video Acc@1": val_video_acc,
             "lr": optimizer.param_groups[0]["lr"],
-            "Val Avg Video Class Acc": val_average_video_class_acc  # Log the average per-class accuracy for validation videos
+            "Val Avg Video Class Acc": val_average_video_class_acc,  # Log the average per-class accuracy for validation videos
+            "F1": f1
             })
 
         print(f"Epoch {epoch} - Train Loss: {train_clip_loss:.4f}, Train Acc@1: {train_clip_acc:.4f}")
         print(f"Epoch {epoch} - Validation Loss: {val_clip_loss:.4f}, Validation Acc@1: {val_clip_acc:.4f}, Validation Video Acc@1: {val_video_acc:.4f}")
         print(f"Epoch {epoch} - Average Validation Video Class Acc: {val_average_video_class_acc:.4f}")
         print(f"Epoch {epoch} - Validation Video Class Acc: {val_list_video_class_acc.tolist()}")
+        print(f"Epoch {epoch} - F1: {f1:.4f}")
+        print(f"Epoch {epoch} - Confusion Matrix: {confusion_matrix}")
 
 
         if config['output_dir'] and utils.is_main_process():
@@ -122,6 +125,6 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='P4Transformer Model Training')
-    parser.add_argument('--config', type=str, default='P4T_BAD2/1', help='Path to the YAML config file')
+    parser.add_argument('--config', type=str, default='P4T_BAD2/2', help='Path to the YAML config file')
     args = parser.parse_args()
     main(args)

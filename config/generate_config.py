@@ -17,7 +17,6 @@ def load_config(config_file):
             sys.exit(1)
 
     if config['dataset'] == 'MSRA':
-        print("entre aqui")
         config['dataset_path'] = path.MSRACTION_PATH
 
     elif config['dataset'] == 'Synthia':

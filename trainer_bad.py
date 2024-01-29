@@ -7,6 +7,7 @@ from learning.losses import FocalLoss
 from datasets.bad import BAD
 import numpy as np
 import scripts.utils as utils
+from sklearn.metrics import f1_score, confusion_matrix
 
 
 def train_one_epoch(model, criterion, optimizer, lr_scheduler, data_loader, device, epoch):
@@ -38,6 +39,7 @@ def train_one_epoch(model, criterion, optimizer, lr_scheduler, data_loader, devi
     total_loss /= len(data_loader.dataset)
 
     return total_loss, total_clip_acc
+
 
 def evaluate(model, criterion, data_loader, device):
     model.eval()
@@ -83,7 +85,15 @@ def evaluate(model, criterion, data_loader, device):
         list_video_class_acc = class_correct[non_zero_classes] *100 / class_count[non_zero_classes]
         average_video_class_acc = np.mean(list_video_class_acc)
 
-    return total_loss, total_clip_acc, total_video_acc, list_video_class_acc, average_video_class_acc
+        # Calculate F1 score
+        video_true = [video_label[k] for k in video_pred]
+        video_pred = list(video_pred.values())
+        f1 = f1_score(video_true, video_pred, average='macro')*100
+
+        #add confusion matrix
+        conf_matrix= confusion_matrix(video_true, video_pred, labels=None, sample_weight=None, normalize=None)
+
+    return total_loss, total_clip_acc, total_video_acc, list_video_class_acc, average_video_class_acc, f1, conf_matrix
 
 def load_data(config):
     dataset = BAD(
@@ -94,7 +104,7 @@ def load_data(config):
         num_points=config['num_points'],
         train=True,
         split_file=config['split_train_path'],
-        aug=[config['DS_AUGMENTS_CFG']]
+        aug=config['DS_AUGMENTS_CFG']
     )
 
     dataset_test = BAD(
@@ -105,9 +115,9 @@ def load_data(config):
         num_points=config['num_points'],
         train=False,
         split_file=config['split_test_path'],
-        aug=[config['DS_AUGMENTS_CFG']]
+        aug=config['DS_AUGMENTS_CFG']
     )
-    
+
     data_loader = torch.utils.data.DataLoader(
         dataset, batch_size=config['batch_size'], shuffle=True, num_workers=config['workers'], pin_memory=True
     )
