@@ -17,6 +17,7 @@ def load_config(config_file):
             sys.exit(1)
 
     if config['dataset'] == 'MSRA':
+        print("entre aqui")
         config['dataset_path'] = path.MSRACTION_PATH
 
     elif config['dataset'] == 'Synthia':
@@ -25,6 +26,13 @@ def load_config(config_file):
         config['data_eval'] = config['dataset_root'] + '/trainval_raw.txt'
         config['data_train'] = config['dataset_root'] + '/test_raw.txt'
         config['label_weights'] = config['dataset_root'] + '/labelweights.npz'
+
+    elif config['dataset'] == 'BAD2':
+        config['dataset_root'] = path.BAD2_PATH
+        config['data_train_path'] = config['dataset_root'] + '/f_depth_npz_0-8_7'
+        config['data_test_path'] = config['dataset_root'] + '/f_depth_npz_0-8_7'
+        config['split_train_path'] = config['dataset_root'] + '/sets_0-8_7.txt'
+        config['split_test_path'] = config['dataset_root'] + '/sets_0-8_7.txt'
     
     else:
         raise ValueError(f"Dataset {config['dataset']} not found.")

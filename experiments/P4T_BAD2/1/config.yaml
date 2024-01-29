@@ -1,5 +1,5 @@
 # Configurations for model training
-dataset: 'MSRA'
+dataset: 'BAD2'
 device_args: 6,7
 wandb_active: false
 seed: 0
@@ -45,7 +45,7 @@ output_dir: ""
 resume: ''
 start_epoch: 0
     # losses
-loss_type: 'std_cross_entropy'   # choices=['std_cross_entropy', 'weighted_cross_entropy', 'focal'],
+loss_type: 'weighted_cross_entropy'   # choices=['std_cross_entropy', 'weighted_cross_entropy', 'focal'],
 save: True
 
 DS_AUGMENTS_CFG:

@@ -57,8 +57,6 @@ def train_one_epoch(
 
 def evaluate(model, criterion, data_loader, device):
     model.eval()
-    metric_logger = utils.MetricLogger(delimiter="  ")
-    header = "Test:"
     total_loss = 0
     total_correct = 0
     total_seen = 0
@@ -102,19 +100,20 @@ def evaluate(model, criterion, data_loader, device):
                 total_correct_class[c] += np.sum((pred2 == c) & (label2 == c) & mask2)
                 total_class[c] += np.sum((label2 == c) & mask2)
 
-            metric_logger.update(loss=(loss1.item() + loss2.item()) / 2.0)
             total_loss += (loss1.item() + loss2.item()) / 2.0
 
     # Calculate and return metrics
     ACCs = [
         total_correct_class[c] / float(total_class[c]) if total_class[c] != 0 else 0
-        for c in range(12)
+        for c in range(12) #TODO: change this number of classes
     ]
+    
+    #This is not calculating the mIoU correctly!!! MeteorNet does do it either
     mIoUs = [
         total_correct_class[c] / float(total_pred_class[c])
         if total_pred_class[c] != 0
         else 0
-        for c in range(12)
+        for c in range(12)  #TODO: change this number of classes
     ]
 
     eval_accuracy = np.mean(np.array(ACCs))

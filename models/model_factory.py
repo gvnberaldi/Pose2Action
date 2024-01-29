@@ -3,7 +3,7 @@ import models.models_synthia as models_synthia
 
 def create_model(config, num_classes):
 
-    if config['dataset'] == 'msra':
+    if config['dataset'] == 'MSRA' or config['dataset'] == 'BAD2':
         try:
             model_name = config.get('model')
             if not hasattr(models_msr, model_name):

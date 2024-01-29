@@ -13,7 +13,7 @@ import models.model_factory as model_factory
 import scripts.utils as utils
 
 
-from trainer_msra import train_one_epoch, evaluate, load_data, create_criterion, create_optimizer_and_scheduler
+from trainer_bad import train_one_epoch, evaluate, load_data, create_criterion, create_optimizer_and_scheduler
 
 def main(args):
 
@@ -32,18 +32,16 @@ def main(args):
     utils.set_random_seed(config['seed'])
 
     # Data loading code
-    print("Loading data from", config['dataset_path'])
+    print("Loading data from", config['dataset_root'])
     data_loader, data_loader_test, num_classes = load_data(config)    
     print("Number of unique labels (classes):", num_classes)
     
-
     model = model_factory.create_model(config, num_classes)
 
-    print(device)
-
     if torch.cuda.device_count() > 1:
-        print("Using", torch.cuda.device_count(), "GPUs!")
         model = nn.DataParallel(model)
+        print("Using", torch.cuda.device_count(), "GPUs!")
+
     model.to(device)
 
     criterion = create_criterion(config, data_loader, num_classes, device)
@@ -124,6 +122,6 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='P4Transformer Model Training')
-    parser.add_argument('--config', type=str, default='P4T_MSRA/1', help='Path to the YAML config file')
+    parser.add_argument('--config', type=str, default='P4T_BAD2/1', help='Path to the YAML config file')
     args = parser.parse_args()
     main(args)

@@ -40,6 +40,7 @@ def main(args):
     model = model_factory.create_model(config, num_classes)
     if torch.cuda.device_count() > 1:
         model = nn.DataParallel(model)
+        print("Using", torch.cuda.device_count(), "GPUs!")
     model.to(device)
 
     criterion_train = nn.CrossEntropyLoss(weight=torch.from_numpy(data_loader.dataset.labelweights).to(device), reduction='none')
