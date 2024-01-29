@@ -79,9 +79,6 @@ def main(args):
             torch.save(
                 checkpoint, os.path.join(config['output_dir'], 'model_{}.pth'.format(epoch))
             )
-            torch.save(
-                checkpoint, os.path.join(config['output_dir'], 'checkpoint.pth')
-            ) 
         
         if eval_mIoU > mIoU:
             mIoU = eval_mIoU

@@ -105,9 +105,7 @@ def main(args):
             torch.save(
                 checkpoint, os.path.join(config['output_dir'], 'model_{}.pth'.format(epoch))
             )
-            torch.save(
-                checkpoint, os.path.join(config['output_dir'], 'checkpoint.pth')
-            ) 
+
         
         if val_video_acc > acc:
             acc = val_video_acc

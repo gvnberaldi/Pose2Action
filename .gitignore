@@ -22,3 +22,6 @@ log_*
 # Ignore old pytorch
 /caa/Homes01/iballester/dev-svr/p4t-bad/modules-pytorch-1.4.0
 
+# Ignore experiments
+/experiments
+
