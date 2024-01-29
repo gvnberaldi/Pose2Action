@@ -105,7 +105,7 @@ def main(args):
                 'args': config
             }
             torch.save(
-                checkpoint, os.path.join(config['output_dir'], 'model_{}.pth'.format(epoch))
+                checkpoint, os.path.join(config['output_dir'], 'checkpoint.pth'.format(epoch))
             )
 
         
