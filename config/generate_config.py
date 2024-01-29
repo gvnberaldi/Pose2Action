@@ -41,6 +41,9 @@ def load_config(config_file):
     if config['log_dir']:
         config['output_dir'] = os.path.join(path.EXPERIMENTS_PATH, config_file, config['log_dir'])
         print(f"Output dir: {config['output_dir']}")
-        os.makedirs(config['output_dir'], exist_ok=True)
+        if not os.path.exists(config['output_dir']):
+            os.makedirs(config['output_dir'])
+        else:
+            raise FileExistsError(f"Directory {config['output_dir']} already exists")
 
     return config
