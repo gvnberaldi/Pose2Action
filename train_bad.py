@@ -125,8 +125,15 @@ def main(args):
     checkpoint = torch.load(best_model_path, map_location='cpu')
     model_without_ddp.load_state_dict(checkpoint['model'])
 
-    report_str = final_test(model_without_ddp, criterion, data_loader_test, device=device, output_dir=config['output_dir'])
-    print(report_str)
+    f1, report_str = final_test(model_without_ddp, criterion, data_loader_test, device=device, output_dir=config['output_dir'])
+    print(f1, report_str)
+
+    # Upload report to wandb
+    wandb.log({
+        "Test F1": f1,
+        "Test Report": report_str
+        })
+    
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='P4Transformer Model Training')

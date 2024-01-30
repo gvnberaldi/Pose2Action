@@ -229,4 +229,4 @@ def final_test(model, criterion, data_loader, device, output_dir):
         with open(os.path.join(output_dir, 'classification_report.txt'), 'w') as f:
             f.write(report_str)
 
-    return report_str
+    return report_str, f1

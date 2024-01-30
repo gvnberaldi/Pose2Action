@@ -37,13 +37,13 @@ class BAD(Dataset):
             if video_name.startswith("."):
                 continue
 
-            split = get_video_split(video_name,self.split_info)
+            split = get_video_split(video_name, self.split_info)
             label = int(video_name.split('_')[3])
 
-            if label == 10 or label ==13 or label == 12:
+            if label in [10, 12, 13]:
                 continue
-            
-            if (split=="train" and mode=="train"):
+
+            if split == mode:
 
                 video = np.load(os.path.join(root, video_name), allow_pickle=True)['point_clouds']
 
@@ -57,44 +57,12 @@ class BAD(Dataset):
                     self.index_map.append((index, t))
                 index += 1
 
-            elif (split=="val" and mode=="val"):
-                if label == 10 or label ==13 or label == 12:
-                 continue
-
-                video = np.load(os.path.join(root, video_name), allow_pickle=True)['point_clouds']
-
-                self.videos.append(video)
-                self.labels.append(label)
-                nframes = video.shape[0]
-
-                # Loop for the regular frames
-                for t in range(0, nframes, frame_interval):
-                    self.index_map.append((index, t))
-                index += 1
-
-            elif (split=="test" and mode=="test"):
-
-                if label == 10 or label ==13 or label == 12:
-                 continue
-
-                video = np.load(os.path.join(root, video_name), allow_pickle=True)['point_clouds']
-
-                self.videos.append(video)
-                self.labels.append(label)
-                nframes = video.shape[0]
-
-                # Loop for the regular frames
-                for t in range(0, nframes, frame_interval):
-                    self.index_map.append((index, t))
-                index += 1
-                
         self.frames_per_clip = frames_per_clip
         self.frame_interval = frame_interval
         self.num_points = num_points
         self.mode = mode
         self.num_classes = max(self.labels) + 1
-
-    
+        
     def __len__(self):
         return len(self.index_map)
 
