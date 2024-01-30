@@ -222,11 +222,7 @@ def final_test(model, criterion, data_loader, device, output_dir):
         # Calculate F1 score
         video_true = [video_label[k] for k in video_pred]
         video_pred = list(video_pred.values())
-        f1 = f1_score(video_true, video_pred, average='macro')*100
+        f1 = f1_score(video_true, video_pred, average='macro', zero_division=1)*100
+        report_str = classification_report(video_true, video_pred, zero_division=1)
 
-        report_str = classification_report(video_true, video_pred)
-
-        with open(os.path.join(output_dir, 'classification_report.txt'), 'w') as f:
-            f.write(report_str)
-
-    return report_str, f1
+    return f1, report_str

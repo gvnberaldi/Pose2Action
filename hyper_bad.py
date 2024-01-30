@@ -8,24 +8,34 @@ from torch import nn
 import torchvision
 import wandb
 import argparse
-from config.generate_config import load_config
+from config.generate_config import load_config_hyper
 import models.model_factory as model_factory
 import scripts.utils as utils
+import optuna
+import yaml
 
 
 from trainer_bad import train_one_epoch, evaluate, load_data, create_criterion, create_optimizer_and_scheduler, final_test
 
-def main(args):
-
-    config = load_config(args.config)
-
-    print("torch version: ", torch.__version__)
-    print("torchvision version: ", torchvision.__version__)
-    os.environ["CUDA_VISIBLE_DEVICES"] = str(config['device_args'])
-    print("CUDA_VISIBLE_DEVICES: ", os.environ["CUDA_VISIBLE_DEVICES"])    
+def objective(trial, study_name, config):
+    
     device = torch.device(0)
+    best_loss = float('inf')
 
-    utils.set_random_seed(config['seed'])
+    wandb.init(project=config['wandb_project'], 
+            group=study_name, 
+            job_type='optunatrial', 
+            name=study_name + '_trial:' +format(trial.number, '05d'),
+            reinit=True)
+
+
+    # Suggest parameters
+    config['lr'] = trial.suggest_float("lr", 1e-5, 1e-1, log=True)
+    config['weight_decay'] = trial.suggest_float("weight_decay", 1e-10, 1e-3, log=True)
+
+
+    wandb.config.update(config)
+
 
     # Data loading code
     print("Loading data from", config['dataset_root'])
@@ -33,8 +43,6 @@ def main(args):
     print("Number of unique labels (classes):", num_classes)
     
     model = model_factory.create_model(config, num_classes)
-
-    model_without_ddp = model
 
     if torch.cuda.device_count() > 1:
         model = nn.DataParallel(model)
@@ -44,22 +52,9 @@ def main(args):
 
     criterion = create_criterion(config, data_loader, num_classes, device)
     optimizer, lr_scheduler = create_optimizer_and_scheduler(config, model, data_loader)
-    
-
-    if config['resume']: #TODO: Check if this works
-        print(f"Loading model from {config['resume']}")
-        checkpoint = torch.load(config['resume'], map_location='cpu')
-        model_state_dict = checkpoint['model']
-        model_without_ddp.load_state_dict(model_state_dict, strict=True)
-
-
-    wandb.init(project=config['wandb_project'],name=args.config)
-    wandb.config.update(config)
-    wandb.watch_called = False
 
     print("Start training")
     start_time = time.time()
-    acc = 0
     
     for epoch in range(config['start_epoch'], config['epochs']):
         train_clip_loss, train_clip_acc = train_one_epoch(model, criterion, optimizer, lr_scheduler, data_loader, device, epoch)
@@ -83,57 +78,60 @@ def main(args):
         print(f"Epoch {epoch} - F1: {f1:.4f}")
         print(f"Epoch {epoch} - Confusion Matrix: {confusion_matrix}")
 
+        if val_clip_loss < best_loss:
+            best_loss = val_clip_loss
+            best_model = model.state_dict()
+            trial.set_user_attr('best_config', config.copy())
 
-        if config['output_dir'] and utils.is_main_process():
-            # If the model is wrapped in DataParallel or DistributedDataParallel, unwrap it
-            model_to_save = model_without_ddp.module if isinstance(model_without_ddp, (nn.DataParallel)) else model_without_ddp
 
-            checkpoint = {
-                'model': model_to_save.state_dict(),  # Save the unwrapped model's state dictionary
-                'optimizer': optimizer.state_dict(),
-                'lr_scheduler': lr_scheduler.state_dict(),
-                'epoch': epoch,
-                'args': config
-            }
-            torch.save(
-                checkpoint, os.path.join(config['output_dir'], 'checkpoint.pth')
-            )
-
-        
-        if val_video_acc > acc:
-            acc = val_video_acc
-            if config['output_dir'] and utils.is_main_process():
-                torch.save(
-                    checkpoint, os.path.join(config['output_dir'], 'best_model.pth')
-                )
-
+    # Save the best model
+    if config['output_dir'] and utils.is_main_process():
+        torch.save(
+            best_model, os.path.join(config['output_dir'], 'best_model.pth')
+        )
+          
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
     print('Training time {}'.format(total_time_str))
 
+    wandb.finish()
 
-    # Load the best model
-    best_model_path = os.path.join(config['output_dir'], 'best_model.pth')
-    checkpoint = torch.load(best_model_path, map_location='cpu')
-    model_without_ddp.load_state_dict(checkpoint['model'])
+    return best_loss
 
-    f1, report_str = final_test(model_without_ddp, criterion, data_loader_test, device=device, output_dir=config['output_dir'])
-    print("F1: ", f1)
-    print("Report: ",report_str)
-
-    with open(os.path.join(config['output_dir'], 'classification_report.txt'), 'w') as f:
-        f.write(str(report_str))
-
-    # Upload report to wandb
-    wandb.log({
-        "Test F1": f1,
-        "Test Report": report_str
-        })
     
+def test_best_model(config, best_model, device):
+    data_loader, data_loader_test, data_loader_val, num_classes = load_data(config)    
+
+    model = model_factory.create_model(config, num_classes)
+    model.load_state_dict(best_model)
+    criterion = create_criterion(config, data_loader, num_classes, device)
+
+    f1, report_str = final_test(model, criterion, data_loader_test, device=device, output_dir=config['output_dir'])
+    print(f1, report_str)
+
+def main(args):
+    config = load_config_hyper(args.config)
+    utils.set_random_seed(config['seed'])
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(config['device_args'])
+    device = torch.device(0)
+    study_name = args.config
+    study = optuna.create_study(direction="minimize", study_name=study_name)
+        
+    study.optimize(lambda trial: objective(trial, study_name, config), n_trials=config['n_trials'])
+    best_config = study.best_trial.user_attrs['best_config']
+
+    with open(os.path.join(config['output_dir'],'best_config.yaml'), 'w') as f:
+        yaml.dump(best_config, f)
+    
+    # Load the best model parameters
+    best_model = torch.load(os.path.join(config['output_dir'], 'best_model.pth'))
+
+    # Run the final test
+    test_best_model(best_config, best_model, device)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='P4Transformer Model Training')
-    parser.add_argument('--config', type=str, default='P4T_BAD2/10', help='Path to the YAML config file')
-
+    parser.add_argument('--config', type=str, default='P4T_BAD2/1', help='Path to the YAML config file')
     args = parser.parse_args()
     main(args)
