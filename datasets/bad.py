@@ -25,7 +25,7 @@ def get_video_split(video_name, split_info):
     return None
 
 class BAD(Dataset):
-    def __init__(self, root, frames_per_clip=16, frame_interval=1, max_frame_interval=20, num_points=2048, train=True, split_file='/data/iballester/datasets/BAD/sets_0-8_7.txt', aug=DS_AUGMENTS_CFG):
+    def __init__(self, root, frames_per_clip=16, frame_interval=1, max_frame_interval=20, num_points=2048, mode="train", split_file='/data/iballester/datasets/BAD/sets_0-8_7.txt', aug=DS_AUGMENTS_CFG):
         super(BAD, self).__init__()
         self.max_frame_interval = max_frame_interval
         self.videos, self.labels, self.index_map = [], [], []
@@ -43,7 +43,7 @@ class BAD(Dataset):
             if label == 10 or label ==13 or label == 12:
                 continue
             
-            if (split=="train") and train:
+            if (split=="train" and mode=="train"):
 
                 video = np.load(os.path.join(root, video_name), allow_pickle=True)['point_clouds']
 
@@ -57,7 +57,22 @@ class BAD(Dataset):
                     self.index_map.append((index, t))
                 index += 1
 
-            if (split=="val" or split=="test") and not train:
+            elif (split=="val" and mode=="val"):
+                if label == 10 or label ==13 or label == 12:
+                 continue
+
+                video = np.load(os.path.join(root, video_name), allow_pickle=True)['point_clouds']
+
+                self.videos.append(video)
+                self.labels.append(label)
+                nframes = video.shape[0]
+
+                # Loop for the regular frames
+                for t in range(0, nframes, frame_interval):
+                    self.index_map.append((index, t))
+                index += 1
+
+            elif (split=="test" and mode=="test"):
 
                 if label == 10 or label ==13 or label == 12:
                  continue
@@ -76,9 +91,8 @@ class BAD(Dataset):
         self.frames_per_clip = frames_per_clip
         self.frame_interval = frame_interval
         self.num_points = num_points
-        self.train = train
+        self.mode = mode
         self.num_classes = max(self.labels) + 1
-
 
     
     def __len__(self):
@@ -104,7 +118,7 @@ class BAD(Dataset):
         video = self.videos[index]
         label = self.labels[index]
             
-        if self.train:
+        if self.mode=="train":
             # Create the clip
             clip = self.create_clip(video, t, self.frame_interval, self.frames_per_clip)
             # Select the points

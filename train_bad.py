@@ -13,7 +13,6 @@ import models.model_factory as model_factory
 import scripts.utils as utils
 
 
-
 from trainer_bad import train_one_epoch, evaluate, load_data, create_criterion, create_optimizer_and_scheduler, final_test
 
 def main(args):
@@ -34,7 +33,7 @@ def main(args):
 
     # Data loading code
     print("Loading data from", config['dataset_root'])
-    data_loader, data_loader_test, num_classes = load_data(config)    
+    data_loader, data_loader_test, data_loader_val, num_classes = load_data(config)    
     print("Number of unique labels (classes):", num_classes)
     
     model = model_factory.create_model(config, num_classes)
@@ -75,7 +74,7 @@ def main(args):
     
     for epoch in range(config['start_epoch'], config['epochs']):
         train_clip_loss, train_clip_acc = train_one_epoch(model, criterion, optimizer, lr_scheduler, data_loader, device, epoch)
-        val_clip_loss, val_clip_acc, val_video_acc, val_list_video_class_acc, val_average_video_class_acc, f1, confusion_matrix  = evaluate(model, criterion, data_loader_test, device=device)
+        val_clip_loss, val_clip_acc, val_video_acc, val_list_video_class_acc, val_average_video_class_acc, f1, confusion_matrix  = evaluate(model, criterion, data_loader_val, device=device)
 
         wandb.log({
             "Train Loss": train_clip_loss,
@@ -126,21 +125,11 @@ def main(args):
     checkpoint = torch.load(best_model_path, map_location='cpu')
     model_without_ddp.load_state_dict(checkpoint['model'])
 
-    report_str, report_dict = final_test(model_without_ddp, data_loader_test, device=device)
-
-
-    with open(os.path.join(config['output_dir'], 'classification_report.txt'), 'w') as f:
-        f.write(report_str)
-
-    utils.visualize_report(report_dict, config['output_dir'])
-
-
-
-
-
+    report_str = final_test(model_without_ddp, criterion, data_loader_test, device=device, output_dir=config['output_dir'])
+    print(report_str)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='P4Transformer Model Training')
-    parser.add_argument('--config', type=str, default='P4T_BAD2/5', help='Path to the YAML config file')
+    parser.add_argument('--config', type=str, default='P4T_BAD2/9', help='Path to the YAML config file')
     args = parser.parse_args()
     main(args)

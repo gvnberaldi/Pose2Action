@@ -8,6 +8,7 @@ from datasets.bad import BAD
 import numpy as np
 import scripts.utils as utils
 from sklearn.metrics import f1_score, confusion_matrix, classification_report
+import os
 
 
 def train_one_epoch(model, criterion, optimizer, lr_scheduler, data_loader, device, epoch):
@@ -49,7 +50,7 @@ def evaluate(model, criterion, data_loader, device):
     total_loss = 0.0
 
     with torch.no_grad():
-        for clip, target, video_idx, _ in tqdm(data_loader, desc='Validation' if data_loader.dataset.train else 'Test'):
+        for clip, target, video_idx, _ in tqdm(data_loader, desc='Validation' if data_loader.dataset.mode=="val" else 'Test'):
             clip, target = clip.to(device, non_blocking=True), target.to(device, non_blocking=True)
             output = model(clip)
             loss = criterion(output, target)
@@ -102,10 +103,11 @@ def load_data(config):
         frame_interval=config['frame_interval'],
         max_frame_interval=config['max_frame_interval'],
         num_points=config['num_points'],
-        train=True,
+        mode="train",
         split_file=config['split_train_path'],
         aug=config['DS_AUGMENTS_CFG']
     )
+
 
     dataset_test = BAD(
         root=config['data_test_path'],
@@ -113,7 +115,7 @@ def load_data(config):
         frame_interval=config['frame_interval'],
         max_frame_interval=config['max_frame_interval'],
         num_points=config['num_points'],
-        train=False,
+        mode="test",
         split_file=config['split_test_path'],
         aug=config['DS_AUGMENTS_CFG']
     )
@@ -124,7 +126,28 @@ def load_data(config):
     data_loader_test = torch.utils.data.DataLoader(
         dataset_test, batch_size=config['batch_size'], num_workers=config['workers'], pin_memory=True
     )
-    return data_loader, data_loader_test, dataset.num_classes
+
+ 
+
+    if config['val_set']:
+        dataset_val = BAD(
+            root=config['data_train_path'],
+            frames_per_clip=config['clip_len'],
+            frame_interval=config['frame_interval'],
+            max_frame_interval=config['max_frame_interval'],
+            num_points=config['num_points'],
+            mode="val",
+            split_file=config['split_train_path'],
+            aug=config['DS_AUGMENTS_CFG']
+    )
+        data_loader_val = torch.utils.data.DataLoader(
+                dataset_val, batch_size=config['batch_size'], num_workers=config['workers'], pin_memory=True
+        )
+    else:
+        data_loader_val = None
+
+
+    return data_loader, data_loader_test, data_loader_val, dataset.num_classes
 
 def create_criterion(config, data_loader, num_classes, device):
     class_weights = utils.compute_class_weights(data_loader, num_classes)
@@ -135,8 +158,6 @@ def create_criterion(config, data_loader, num_classes, device):
         return nn.CrossEntropyLoss()
     elif loss_type == 'weighted_cross_entropy':
         return nn.CrossEntropyLoss(weight=class_weights_tensor)
-    elif loss_type == 'focal':
-        return losses.FocalLoss(alpha=1, gamma=2)
     else:
         raise ValueError("Invalid loss type. Supported types: 'std_cross_entropy', 'weighted_cross_entropy', 'focal'.")
 
@@ -150,23 +171,62 @@ def create_optimizer_and_scheduler(config, model, data_loader):
     )
     return optimizer, lr_scheduler
 
-def final_test(model, data_loader_test, device):
+
+def final_test(model, criterion, data_loader, device, output_dir):
     model.eval()
-    all_preds = []
-    all_targets = []
+    video_prob = {}
+    video_label = {}
+    total_clip_acc = 0.0
+    total_loss = 0.0
+
     with torch.no_grad():
-        for inputs, targets in data_loader_test:
-            inputs = inputs.to(device)
-            targets = targets.to(device)
-            outputs = model(inputs)
-            _, preds = torch.max(outputs, 1)
-            all_preds.extend(preds.cpu().numpy())
-            all_targets.extend(targets.cpu().numpy())
+        for clip, target, video_idx, _ in tqdm(data_loader, desc='Test'):
+            clip, target = clip.to(device, non_blocking=True), target.to(device, non_blocking=True)
+            output = model(clip)
+            loss = criterion(output, target)
 
-    report_dict = classification_report(all_targets, all_preds, output_dict=True)
-    report_str = classification_report(all_targets, all_preds)
-    print(report_str)
+            clip_acc, _ = utils.accuracy(output, target, topk=(1, 5))
+
+            total_clip_acc += clip_acc.item() * clip.size(0)
+            total_loss += loss.item() * clip.size(0)
+
+            prob = F.softmax(output, dim=1).cpu().numpy()
+            target, video_idx = target.cpu().numpy(), video_idx.cpu().numpy()
+
+            for i, idx in enumerate(video_idx):
+                video_prob[idx] = video_prob.get(idx, 0) + prob[i]
+                video_label[idx] = video_label.get(idx, target[i])
+
+        total_clip_acc /= len(data_loader.dataset)
+        total_loss /= len(data_loader.dataset)
+
+        video_pred = {k: np.argmax(v) for k, v in video_prob.items()}
 
 
-    return report_str, report_dict
 
+
+        pred_correct = [video_pred[k] == video_label[k] for k in video_pred]
+        total_video_acc = np.mean(pred_correct)*100
+
+        class_count = np.zeros(data_loader.dataset.num_classes)
+        class_correct = np.zeros(data_loader.dataset.num_classes)
+
+        for k, v in video_pred.items():
+            label = video_label[k]
+            class_count[label] += 1
+            class_correct[label] += (v == label)
+
+        non_zero_classes = class_count != 0
+        list_video_class_acc = class_correct[non_zero_classes] *100 / class_count[non_zero_classes]
+
+        # Calculate F1 score
+        video_true = [video_label[k] for k in video_pred]
+        video_pred = list(video_pred.values())
+        f1 = f1_score(video_true, video_pred, average='macro')*100
+
+        report_str = classification_report(video_true, video_pred)
+
+        with open(os.path.join(output_dir, 'classification_report.txt'), 'w') as f:
+            f.write(report_str)
+
+    return report_str
