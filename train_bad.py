@@ -63,8 +63,11 @@ def main(args):
     
     for epoch in range(config['start_epoch'], config['epochs']):
         train_clip_loss, train_clip_acc = train_one_epoch(model, criterion, optimizer, lr_scheduler, data_loader, device, epoch)
-        val_clip_loss, val_clip_acc, val_video_acc, val_list_video_class_acc, val_average_video_class_acc, f1, confusion_matrix  = evaluate(model, criterion, data_loader_val, device=device)
-
+        if config['val_set']:
+            val_clip_loss, val_clip_acc, val_video_acc, val_list_video_class_acc, val_average_video_class_acc, f1, confusion_matrix  = evaluate(model, criterion, data_loader_val, device=device)
+        else:
+            val_clip_loss, val_clip_acc, val_video_acc, val_list_video_class_acc, val_average_video_class_acc, f1, confusion_matrix  = evaluate(model, criterion, data_loader_test, device=device)  
+        
         wandb.log({
             "Train Loss": train_clip_loss,
             "Train Clip Acc@1": train_clip_acc,
@@ -133,7 +136,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='P4Transformer Model Training')
-    parser.add_argument('--config', type=str, default='P4T_BAD2/10', help='Path to the YAML config file')
+    parser.add_argument('--config', type=str, default='P4T_BAD2/11', help='Path to the YAML config file')
 
     args = parser.parse_args()
     main(args)

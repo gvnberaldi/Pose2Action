@@ -1,13 +1,13 @@
 # Configurations for model training
 dataset: 'BAD2'
 split: '/sets_0-8_7_val.txt'
-device_args: 3,4,5
+device_args: 3,4,5,6
 wandb_active: false
 seed: 0
 model: 'P4Transformer'
-wandb_project: 'hyper_BAD2'
+wandb_project: 'hyper_experiments'
 val_set: true
-n_trials: 2
+n_trials: 20
 # input
 clip_len: 24
 frame_interval: 1
@@ -31,7 +31,7 @@ mlp_dim: 2048
 
 # training
 batch_size: 14
-epochs: 1
+epochs: 50
 workers: 16
 lr: 0.01
 momentum: 0.9
