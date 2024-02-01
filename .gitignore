@@ -24,4 +24,4 @@ log_*
 
 # Ignore experiments
 /experiments
-
+/hyper_experiments

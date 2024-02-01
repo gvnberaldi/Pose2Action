@@ -16,7 +16,6 @@ import scripts.utils as utils
 from trainer_bad import train_one_epoch, evaluate, load_data, create_criterion, create_optimizer_and_scheduler, final_test
 
 def main(args):
-
     config = load_config(args.config)
 
     print("torch version: ", torch.__version__)
@@ -33,25 +32,25 @@ def main(args):
     print("Number of unique labels (classes):", num_classes)
     
     model = model_factory.create_model(config, num_classes)
-
     model_without_ddp = model
 
     if torch.cuda.device_count() > 1:
         model = nn.DataParallel(model)
         print("Using", torch.cuda.device_count(), "GPUs!")
-
     model.to(device)
 
     criterion = create_criterion(config, data_loader, num_classes, device)
     optimizer, lr_scheduler = create_optimizer_and_scheduler(config, model, data_loader)
     
-
-    if config['resume']: #TODO: Check if this works
+    if config['resume']: #TODO: check if this works
         print(f"Loading model from {config['resume']}")
         checkpoint = torch.load(config['resume'], map_location='cpu')
         model_state_dict = checkpoint['model']
         model_without_ddp.load_state_dict(model_state_dict, strict=True)
-
+        config['start_epoch'] = checkpoint['epoch'] + 1
+        lr_scheduler.load_state_dict(checkpoint['lr_scheduler'])
+        opt_state_dict = checkpoint['optimizer']
+        optimizer.load_state_dict(opt_state_dict)
 
     wandb.init(project=config['wandb_project'],name=args.config)
     wandb.config.update(config)
@@ -136,7 +135,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='P4Transformer Model Training')
-    parser.add_argument('--config', type=str, default='P4T_BAD2/11', help='Path to the YAML config file')
+    parser.add_argument('--config', type=str, default='PSTNet2_BAD2/1', help='Path to the YAML config file')
 
     args = parser.parse_args()
     main(args)

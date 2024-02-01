@@ -2,13 +2,12 @@ from tqdm import tqdm
 import torch
 from torch import nn
 from torch.nn import functional as F
-from torch.utils.data import DataLoader
 from scripts.utils import accuracy, set_random_seed
 from scripts.scheduler import WarmupMultiStepLR
-from learning.losses import FocalLoss
 from datasets.msr import MSRAction3D
 import numpy as np
 import scripts.utils as utils
+from sklearn.metrics import f1_score, confusion_matrix, classification_report
 
 
 def train_one_epoch(model, criterion, optimizer, lr_scheduler, data_loader, device, epoch):
@@ -84,8 +83,17 @@ def evaluate(model, criterion, data_loader, device):
         non_zero_classes = class_count != 0
         list_video_class_acc = class_correct[non_zero_classes] *100 / class_count[non_zero_classes]
         average_video_class_acc = np.mean(list_video_class_acc)
+        
+        # Calculate F1 score
+        video_true = [video_label[k] for k in video_pred]
+        video_pred = list(video_pred.values())
+        f1 = f1_score(video_true, video_pred, average='macro')*100
 
-    return total_loss, total_clip_acc, total_video_acc, list_video_class_acc, average_video_class_acc
+        #add confusion matrix
+        conf_matrix= confusion_matrix(video_true, video_pred, labels=None, sample_weight=None, normalize=None)
+
+    return total_loss, total_clip_acc, total_video_acc, list_video_class_acc, average_video_class_acc, f1, conf_matrix
+
 
 def load_data(config):
     dataset = MSRAction3D(
@@ -119,8 +127,6 @@ def create_criterion(config, data_loader, num_classes, device):
         return nn.CrossEntropyLoss()
     elif loss_type == 'weighted_cross_entropy':
         return nn.CrossEntropyLoss(weight=class_weights_tensor)
-    elif loss_type == 'focal':
-        return losses.FocalLoss(alpha=1, gamma=2)
     else:
         raise ValueError("Invalid loss type. Supported types: 'std_cross_entropy', 'weighted_cross_entropy', 'focal'.")
 
@@ -133,3 +139,54 @@ def create_optimizer_and_scheduler(config, model, data_loader):
         optimizer, milestones=lr_milestones, gamma=config['lr_gamma'], warmup_iters=warmup_iters, warmup_factor=1e-5
     )
     return optimizer, lr_scheduler
+
+def final_test(model, criterion, data_loader, device, output_dir):
+    model.eval()
+    video_prob = {}
+    video_label = {}
+    total_clip_acc = 0.0
+    total_loss = 0.0
+
+    with torch.no_grad():
+        for clip, target, video_idx, _ in tqdm(data_loader, desc='Test'):
+            clip, target = clip.to(device, non_blocking=True), target.to(device, non_blocking=True)
+            output = model(clip)
+            loss = criterion(output, target)
+
+            clip_acc, _ = utils.accuracy(output, target, topk=(1, 5))
+
+            total_clip_acc += clip_acc.item() * clip.size(0)
+            total_loss += loss.item() * clip.size(0)
+
+            prob = F.softmax(output, dim=1).cpu().numpy()
+            target, video_idx = target.cpu().numpy(), video_idx.cpu().numpy()
+
+            for i, idx in enumerate(video_idx):
+                video_prob[idx] = video_prob.get(idx, 0) + prob[i]
+                video_label[idx] = video_label.get(idx, target[i])
+
+        total_clip_acc /= len(data_loader.dataset)
+        total_loss /= len(data_loader.dataset)
+
+        video_pred = {k: np.argmax(v) for k, v in video_prob.items()}
+        pred_correct = [video_pred[k] == video_label[k] for k in video_pred]
+        total_video_acc = np.mean(pred_correct)*100
+
+        class_count = np.zeros(data_loader.dataset.num_classes)
+        class_correct = np.zeros(data_loader.dataset.num_classes)
+
+        for k, v in video_pred.items():
+            label = video_label[k]
+            class_count[label] += 1
+            class_correct[label] += (v == label)
+
+        non_zero_classes = class_count != 0
+        list_video_class_acc = class_correct[non_zero_classes] *100 / class_count[non_zero_classes]
+
+        # Calculate F1 score
+        video_true = [video_label[k] for k in video_pred]
+        video_pred = list(video_pred.values())
+        f1 = f1_score(video_true, video_pred, average='macro', zero_division=1)*100
+        report_str = classification_report(video_true, video_pred, zero_division=1)
+
+    return f1, report_str

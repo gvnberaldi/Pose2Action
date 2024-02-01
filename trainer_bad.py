@@ -3,12 +3,10 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 from scripts.scheduler import WarmupMultiStepLR
-from learning.losses import FocalLoss
 from datasets.bad import BAD
 import numpy as np
 import scripts.utils as utils
 from sklearn.metrics import f1_score, confusion_matrix, classification_report
-import os
 
 
 def train_one_epoch(model, criterion, optimizer, lr_scheduler, data_loader, device, epoch):
@@ -127,7 +125,6 @@ def load_data(config):
         dataset_test, batch_size=config['batch_size'], num_workers=config['workers'], pin_memory=True
     )
 
- 
 
     if config['val_set']:
         dataset_val = BAD(
@@ -201,9 +198,6 @@ def final_test(model, criterion, data_loader, device, output_dir):
         total_loss /= len(data_loader.dataset)
 
         video_pred = {k: np.argmax(v) for k, v in video_prob.items()}
-
-
-
 
         pred_correct = [video_pred[k] == video_label[k] for k in video_pred]
         total_video_acc = np.mean(pred_correct)*100

@@ -1,12 +1,15 @@
 # Configurations for model training
 dataset: 'BAD2'
+split: '/sets_0-8_7.txt'
 device_args: 1
-wandb_active: false
+device_args: 0,1,2,3
 seed: 0
 model: 'PSTTransformer'
 wandb_project: 'ar4pc_ev'
+val_set: false
+
 # input
-clip_len: 16
+clip_len: 24
 frame_interval: 1
 max_frame_interval: 20
 num_points: 2048
@@ -41,12 +44,12 @@ lr_milestones:
 lr_gamma: 0.1
 lr_warmup_epochs: 10
 # output
-log_dir: ""
+log_dir: "log"
     # resume
 resume: ''
 start_epoch: 0
     # losses
-loss_type: 'std_cross_entropy'   # choices=['std_cross_entropy', 'weighted_cross_entropy', 'focal'],
+loss_type: 'weighted_cross_entropy'   # choices=['std_cross_entropy', 'weighted_cross_entropy', 'focal'],
 save: True
 
 DS_AUGMENTS_CFG:
@@ -77,7 +80,7 @@ DS_AUGMENTS_CFG:
       - false
 
   - name: RotationAug
-    p_prob: 0.0
+    p_prob: 1.0
     p_axis: 2
     p_min_angle: -0.1308996939
     p_max_angle: 0.1308996939
@@ -86,7 +89,7 @@ DS_AUGMENTS_CFG:
       - false
 
   - name: NoiseAug
-    p_prob: 0.0
+    p_prob: 1.0
     p_stddev: 0.005
     p_clip: 0.02
     p_apply_extra_tensors:
@@ -94,7 +97,7 @@ DS_AUGMENTS_CFG:
       - false
 
   - name: LinearAug
-    p_prob: 0.0
+    p_prob: 1.0
     p_min_a: 0.9
     p_max_a: 1.1
     p_min_b: 0.0
@@ -105,7 +108,7 @@ DS_AUGMENTS_CFG:
       - false
 
   - name: MirrorAug
-    p_prob: 0.0
+    p_prob: 1.0
     p_mirror_prob: 0.5
     p_axes:
       - true
