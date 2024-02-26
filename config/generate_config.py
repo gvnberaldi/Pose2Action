@@ -15,6 +15,11 @@ def load_config(config_file):
         except yaml.YAMLError as exc:
             print(exc)
             sys.exit(1)
+        
+    if 'mode_train' in config:
+        print(config['mode_train'])
+    else:
+        print("Key 'mode_train' does not exist in the config.")
 
     if config['dataset'] == 'MSRA':
         config['dataset_path'] = path.MSRACTION_PATH
@@ -32,6 +37,12 @@ def load_config(config_file):
         config['data_test_path'] = config['dataset_root'] + '/f_depth_npz_0-8_7'
         config['split_train_path'] = config['dataset_root'] + config['split']
         config['split_test_path'] = config['dataset_root'] + config['split']
+
+    elif config['dataset'] == 'NTU60':
+        config['dataset_root'] = path.NTU60_PATH
+        config['dataset_path'] = config['dataset_root'] + '/pc'
+
+        config['data_meta'] = config['dataset_root'] + '/ntu60.list'
 
     
     else:

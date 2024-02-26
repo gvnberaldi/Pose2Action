@@ -4,12 +4,14 @@ from torch import nn
 from torch.nn import functional as F
 from scripts.utils import accuracy, set_random_seed
 from scripts.scheduler import WarmupMultiStepLR
-from datasets.msr import MSRAction3D
+from datasets.ntu60 import NTU60Subject
 import numpy as np
 import scripts.utils as utils
 from sklearn.metrics import f1_score, confusion_matrix, classification_report
+import time
 
 
+# Python
 def train_one_epoch(model, criterion, optimizer, lr_scheduler, data_loader, device, epoch):
     model.train()
     
@@ -17,15 +19,17 @@ def train_one_epoch(model, criterion, optimizer, lr_scheduler, data_loader, devi
     total_clip_acc = 0.0
     total_loss = 0.0
 
-    for batch_idx, (clip, target, _, _) in enumerate(tqdm(data_loader, desc=header)):
+    for batch_idx, (clip, target, _) in enumerate(tqdm(data_loader, desc=header)):
         clip, target = clip.to(device), target.to(device)
+
         output = model(clip)
         loss = criterion(output, target)
 
-        # Zero the gradients before backpropagation
         optimizer.zero_grad()
         loss.backward()
+
         optimizer.step()
+        torch.cuda.synchronize()
 
         acc1, _ = utils.accuracy(output, target, topk=(1, 5)) 
 
@@ -48,7 +52,7 @@ def evaluate(model, criterion, data_loader, device):
     total_loss = 0.0
 
     with torch.no_grad():
-        for clip, target, video_idx, _ in tqdm(data_loader, desc='Validation' if data_loader.dataset.train else 'Test'):
+        for clip, target, video_idx in tqdm(data_loader, desc='Validation' if data_loader.dataset.train else 'Test'):
             clip, target = clip.to(device, non_blocking=True), target.to(device, non_blocking=True)
             output = model(clip)
             loss = criterion(output, target)
@@ -96,17 +100,19 @@ def evaluate(model, criterion, data_loader, device):
 
 
 def load_data(config):
-    dataset = MSRAction3D(
+    dataset = NTU60Subject(
         root=config['dataset_path'],
+        meta=config['data_meta'],
         frames_per_clip=config['clip_len'],
-        frame_interval=config['frame_interval'],
+        step_between_clips=config['frame_step'],
         num_points=config['num_points'],
         train=True,
     )
-    dataset_test = MSRAction3D(
-        root=config['dataset_path'],
+    dataset_test = NTU60Subject(
+       root=config['dataset_path'],
+        meta=config['data_meta'],
         frames_per_clip=config['clip_len'],
-        frame_interval=config['frame_interval'],
+        step_between_clips=config['frame_step'],
         num_points=config['num_points'],
         train=False,
     )
@@ -119,13 +125,13 @@ def load_data(config):
     return data_loader, data_loader_test, dataset.num_classes
 
 def create_criterion(config, data_loader, num_classes, device):
-    class_weights = utils.compute_class_weights(data_loader, num_classes)
-    class_weights_tensor = torch.FloatTensor(class_weights).to(device)
 
     loss_type = config.get('loss_type', 'std_cross_entropy')
     if loss_type == 'std_cross_entropy':
         return nn.CrossEntropyLoss()
     elif loss_type == 'weighted_cross_entropy':
+        class_weights = utils.compute_class_weights(data_loader, num_classes)
+        class_weights_tensor = torch.FloatTensor(class_weights).to(device)
         return nn.CrossEntropyLoss(weight=class_weights_tensor)
     else:
         raise ValueError("Invalid loss type. Supported types: 'std_cross_entropy', 'weighted_cross_entropy', 'focal'.")
@@ -148,7 +154,7 @@ def final_test(model, criterion, data_loader, device, output_dir):
     total_loss = 0.0
 
     with torch.no_grad():
-        for clip, target, video_idx, _ in tqdm(data_loader, desc='Test'):
+        for clip, target, video_idx in tqdm(data_loader, desc='Test'):
             clip, target = clip.to(device, non_blocking=True), target.to(device, non_blocking=True)
             output = model(clip)
             loss = criterion(output, target)
