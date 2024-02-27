@@ -25,3 +25,8 @@ log_*
 # Ignore experiments
 /experiments
 /hyper_experiments
+
+# Ignore data folder
+data/
+
+.idea/

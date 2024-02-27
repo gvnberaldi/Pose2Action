@@ -43,7 +43,14 @@ def load_config(config_file):
         config['dataset_path'] = config['dataset_root'] + '/pc'
 
         config['data_meta'] = config['dataset_root'] + '/ntu60.list'
+    
+    elif config['dataset'] == 'ITOP-SIDE':
+        config['dataset_root'] = path.ITOP_SIDE_PATH
+        config['dataset_path'] = path.ITOP_SIDE_PATH
 
+    elif config['dataset'] == 'ITOP-TOP':
+        config['dataset_root'] = path.ITOP_TOP_PATH
+        config['dataset_path'] = path.ITOP_TOP_PATH
     
     else:
         raise ValueError(f"Dataset {config['dataset']} not found.")
