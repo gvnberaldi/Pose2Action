@@ -75,10 +75,10 @@ def main(args):
         table2 = wandb.Table(data=data2, columns=["joint", "pck"])
 
         wandb.log({
-            "Train MJE": train_clip_loss,
+            "Train loss": train_clip_loss,
             "Train mAP": train_map,
             "Train PCK": wandb.plot.bar(table1, "joint", "pck", title="Train PCK"),
-            "Val MJE": val_clip_loss,
+            "Val loss": val_clip_loss,
             "Val mAP": val_map,
             "Val PCK": wandb.plot.bar(table2, "joint", "pck", title="Val PCK"),
             "lr": optimizer.param_groups[0]["lr"],
@@ -119,6 +119,6 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='P4Transformer Model Training on ITOP dataset')
-    parser.add_argument('--config', type=str, default='P4T_ITOP/3', help='Path to the YAML config file')
+    parser.add_argument('--config', type=str, default='P4T_ITOP/20BKCBeAmCFhf1AWZe', help='Path to the YAML config file')
     args = parser.parse_args()
     main(args)

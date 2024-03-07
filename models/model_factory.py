@@ -6,10 +6,26 @@ def create_model(config, num_classes):
     if config['dataset'] == 'MSRA' or config['dataset'] == 'BAD2' or  config['dataset'] == 'NTU60' or 'ITOP' in config['dataset']:
         try:
             model_name = config.get('model')
+            print(model_name)
             if not hasattr(models_msr, model_name):
                 raise ValueError(f"Model {model_name} not found in models_msr module.")
 
             model_params = {
+                'HPETransformer': {
+                    'num_points': config.get('num_points'),                            
+                    'radius': config.get('radius'),
+                    'nsamples': config.get('nsamples'),
+                    'spatial_stride': config.get('spatial_stride'),
+                    'temporal_kernel_size': config.get('temporal_kernel_size'),
+                    'temporal_stride': config.get('temporal_stride'),
+                    'emb_relu': config.get('emb_relu'),
+                    'dim': config.get('dim'),
+                    'depth': config.get('depth'),
+                    'heads': config.get('heads'),
+                    'dim_head': config.get('dim_head'),
+                    'mlp_dim': config.get('mlp_dim'),
+                    'num_classes': num_classes
+                },
                 'P4Transformer': {
                     'radius': config.get('radius'),
                     'nsamples': config.get('nsamples'),

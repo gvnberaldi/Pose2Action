@@ -100,9 +100,8 @@ def create_criterion(config, data_loader, num_classes, device):
         return metrics.MJE()
     elif loss_type == 'l1':
         return nn.L1Loss()
-
-
-
+    elif loss_type == 'mse':
+        return nn.MSELoss()
     elif loss_type == 'std_cross_entropy':
         return nn.CrossEntropyLoss()
     elif loss_type == 'weighted_cross_entropy':
@@ -115,9 +114,12 @@ def create_criterion(config, data_loader, num_classes, device):
 
 def create_optimizer_and_scheduler(config, model, data_loader):
     lr = config['lr']
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=config['weight_decay'])
-
-    lr_scheduler = OneCycleLR(optimizer, lr, total_steps=config['epochs'] * len(data_loader))
+    optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=config['momentum'], weight_decay=config['weight_decay'])
+    warmup_iters = config['lr_warmup_epochs'] * len(data_loader)
+    lr_milestones = [len(data_loader) * m for m in config['lr_milestones']]
+    lr_scheduler = WarmupMultiStepLR(
+        optimizer, milestones=lr_milestones, gamma=config['lr_gamma'], warmup_iters=warmup_iters, warmup_factor=1e-5
+    )
     return optimizer, lr_scheduler
 
 

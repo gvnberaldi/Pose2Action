@@ -47,6 +47,10 @@ def load_config(config_file):
     elif config['dataset'] == 'ITOP-SIDE':
         config['dataset_root'] = path.ITOP_SIDE_PATH
         config['dataset_path'] = path.ITOP_SIDE_PATH
+    
+    elif config['dataset'] == 'ITOP-SIDE-PRE':
+        config['dataset_root'] = path.ITOP_SIDE_PRE_PATH
+        config['dataset_path'] = path.ITOP_SIDE_PRE_PATH
 
     elif config['dataset'] == 'ITOP-TOP':
         config['dataset_root'] = path.ITOP_TOP_PATH

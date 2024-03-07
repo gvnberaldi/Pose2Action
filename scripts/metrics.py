@@ -13,6 +13,10 @@ class MJE(nn.Module):
 
 
 def joint_accuracy(predicted, target, threshold):
+
+    # assert predicted.shape == target.shape == (b_size, n_kpts, 3)
+
+    # Calculate euclidian distance between predicted and target
     distance = torch.norm(predicted - target, dim=-1)
 
     correct = distance < threshold

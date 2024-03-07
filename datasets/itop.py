@@ -10,7 +10,7 @@ import time
 
 
 class ITOP(Dataset):
-    def __init__(self, root, frames_per_clip=16, frame_interval=1, num_points=2048, train=True, subset_size=5000):
+    def __init__(self, root, frames_per_clip=16, frame_interval=1, num_points=2048, train=True):
         super(ITOP, self).__init__()
 
         self.videos = []
@@ -32,9 +32,8 @@ class ITOP(Dataset):
 
         point_cloud_file = h5py.File(os.path.join(root, point_clouds_file), 'r')
         labels_file = h5py.File(os.path.join(root, labels_file), 'r')
-
-        point_clouds = point_cloud_file['data'][:subset_size, :, :]
-        identifiers = point_cloud_file['id'][:subset_size]
+        point_clouds = point_cloud_file['data'][:, :, :]
+        identifiers = point_cloud_file['id'][:]
         joints = labels_file['real_world_coordinates'][:]
 
         point_cloud_file.close()
@@ -103,10 +102,10 @@ class ITOP(Dataset):
 
         # here augmentations missing!
 
-        if self.train:
+        #if self.train:
             # scale the points
-            scales = np.random.uniform(0.9, 1.1, size=3)
-            clip = clip * scales
+            #scales = np.random.uniform(0.9, 1.1, size=3)
+            #clip = clip * scales
 
         label = np.array([label[t + i * self.frame_interval] for i in range(self.frames_per_clip)])
 
@@ -114,7 +113,7 @@ class ITOP(Dataset):
 
 
 if __name__ == '__main__':
-    dataset = ITOP(root='/data/iballester/datasets/ITOP/SIDE', frames_per_clip=16, train=False)
+    dataset = ITOP(root='/data/iballester/datasets/ITOP_pre/SIDE', frames_per_clip=16, train=False)
     clip, label, video_idx = dataset[0]
     print(clip)
     print(label)
