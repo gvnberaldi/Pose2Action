@@ -32,7 +32,7 @@ class HPETransformer(nn.Module):
                  temporal_kernel_size, temporal_stride,                                 # P4DConv: temporal
                  emb_relu,                                                              # embedding: relu
                  dim, depth, heads, dim_head,                                           # transformer
-                 mlp_dim, num_classes):                                                 # output
+                 mlp_dim, num_classes, K=15):                                                 # output
         super().__init__()
 
         self.tube_embedding = P4DConv(in_planes=0, mlp_planes=[dim], mlp_batch_norm=[False], mlp_activation=[False],
@@ -45,13 +45,12 @@ class HPETransformer(nn.Module):
 
         self.transformer = Transformer(dim, depth, heads, dim_head, mlp_dim)
 
-        print("dim ", dim)
-        print("dim_head ", dim_head)
-        print(num_points/spatial_stride*dim)
+        self.learnable_tensor = nn.Parameter(torch.randn(K, 1, dim))
+        self.attention = nn.MultiheadAttention(embed_dim=dim, num_heads=1)
 
         self.mlp_head = nn.Sequential(
-            nn.LayerNorm(num_points//spatial_stride*dim),
-            nn.Linear(num_points//spatial_stride*dim, mlp_dim),
+            nn.LayerNorm(dim * K),
+            nn.Linear(dim * K, mlp_dim),
             nn.GELU(),
             nn.Linear(mlp_dim, num_classes)
         )
@@ -84,12 +83,13 @@ class HPETransformer(nn.Module):
 
         output = self.transformer(embedding)
 
-        #flatten the output tensor without any pooling
-        output = output.view(output.size(0), -1)
+        # Cross attention
+        key = value = output.permute(1, 0, 2)
+        query = self.learnable_tensor.expand(-1, output.size(0), -1)
+        output, _ = self.attention(query, key, value)
+        output = output.permute(1, 0, 2).contiguous()
+        output = output.view(-1, output.shape[-1] * self.learnable_tensor.shape[0])
 
-
-        #output = torch.max(input=output, dim=1, keepdim=False, out=None)[0]
-        
         output = self.mlp_head(output)
 
         return output
