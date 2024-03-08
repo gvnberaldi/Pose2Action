@@ -7,7 +7,7 @@ BAD2_PATH = '/data/iballester/datasets/BAD2'
 
 NTU60_PATH = '/data/iballester/datasets/ntu60'
 
-#ITOP_SIDE_PATH = '/data/iballester/datasets/ITOP/SIDE'
-ITOP_TOP_PATH = '/data/iballester/datasets/ITOP/TOP'
+ITOP_SIDE_PATH = '/data/iballester/datasets/ITOP-PREP-COMPL/SIDE'
+#ITOP_TOP_PATH = '/data/iballester/datasets/ITOP/TOP'
 
-ITOP_SIDE_PRE_PATH = '/data/iballester/datasets/ITOP_pre/SIDE'
+#ITOP_SIDE_PRE_PATH = '/data/iballester/datasets/ITOP_pre/SIDE'
