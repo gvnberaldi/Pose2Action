@@ -32,7 +32,7 @@ class HPETransformer(nn.Module):
                  temporal_kernel_size, temporal_stride,                                 # P4DConv: temporal
                  emb_relu,                                                              # embedding: relu
                  dim, depth, heads, dim_head,                                           # transformer
-                 mlp_dim, num_classes, K=15):                                                 # output
+                 mlp_dim, num_classes, K=15, dim_cross=264):                                                 # output
         super().__init__()
 
         self.tube_embedding = P4DConv(in_planes=0, mlp_planes=[dim], mlp_batch_norm=[False], mlp_activation=[False],
@@ -45,12 +45,12 @@ class HPETransformer(nn.Module):
 
         self.transformer = Transformer(dim, depth, heads, dim_head, mlp_dim)
 
-        self.learnable_tensor = nn.Parameter(torch.randn(K, 1, dim))
-        self.attention = nn.MultiheadAttention(embed_dim=dim, num_heads=1)
+        self.learnable_tensor = nn.Parameter(torch.randn(K, 1, dim_cross))
+        self.attention = nn.MultiheadAttention(embed_dim=dim_cross, num_heads=4, vdim=dim, kdim=dim)
 
         self.mlp_head = nn.Sequential(
-            nn.LayerNorm(dim * K),
-            nn.Linear(dim * K, mlp_dim),
+            nn.LayerNorm(dim_cross * K),
+            nn.Linear(dim_cross * K, mlp_dim),
             nn.GELU(),
             nn.Linear(mlp_dim, num_classes)
         )
@@ -430,7 +430,7 @@ class PrimitiveTransformer(nn.Module):
 
         self.tube_embedding = P4DConv(in_planes=0, mlp_planes=[dim], mlp_batch_norm=[False], mlp_activation=[False],
                                   spatial_kernel_size=[radius, nsamples], spatial_stride=spatial_stride,
-                                  temporal_kernel_size=temporal_kernel_size, temporal_stride=temporal_stride, temporal_padding=[1, 0],
+                                  temporal_kernel_size=temporal_kernel_size, temporal_stride=temporal_stride, temporal_padding=[0, 0],
                                   operator='+', spatial_pooling='max', temporal_pooling='max')
 
         self.emb_relu1 = nn.ReLU()

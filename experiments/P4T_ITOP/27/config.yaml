@@ -1,0 +1,123 @@
+# Configurations for model training
+dataset: 'ITOP-SIDE'
+device_args: 6
+wandb_active: false
+seed: 0
+model: 'HPETransformer'
+wandb_project: 'hpe'
+mode_train: True
+
+
+# input
+clip_len: 1
+frame_interval: 1
+max_frame_interval: 20
+num_points: 2048
+
+
+#threshold
+threshold: 0.1
+
+# P4D
+radius: 0.7
+nsamples: 32
+spatial_stride: 32
+temporal_kernel_size: 1
+temporal_stride: 1
+# embedding
+emb_relu: false
+# transformer
+dim: 1024
+depth: 5
+heads: 8
+dim_head: 256
+mlp_dim: 2048
+
+
+
+# training
+batch_size: 24
+epochs: 100
+workers: 8
+lr: 0.01
+momentum: 0.9
+weight_decay: 1e-4
+lr_milestones:
+  - 20
+  - 30
+lr_gamma: 1.0
+lr_warmup_epochs: 0
+# output
+log_dir: "log"
+    # resume
+resume: ''
+start_epoch: 0
+    # losses
+loss_type: 'l1'   # choices=['std_cross_entropy', 'weighted_cross_entropy', 'focal'],
+save: True
+
+DS_AUGMENTS_CFG:
+  - name: CropPtsAug
+    p_prob: 0.0
+    p_max_pts: 1500
+    p_crop_ratio: 1
+    p_apply_extra_tensors:
+      - false
+      - false
+
+  - name: RotationAug
+    p_prob: 0.0
+    p_axis: 1
+    p_min_angle: 0.0
+    p_max_angle: 6.28318530718
+    p_apply_extra_tensors:
+      - false
+      - false
+
+  - name: RotationAug
+    p_prob: 0.0
+    p_axis: 0
+    p_min_angle: -0.1308996939
+    p_max_angle: 0.1308996939
+    p_apply_extra_tensors:
+      - false
+      - false
+
+  - name: RotationAug
+    p_prob: 0.0
+    p_axis: 2
+    p_min_angle: -0.1308996939
+    p_max_angle: 0.1308996939
+    p_apply_extra_tensors:
+      - false
+      - false
+
+  - name: NoiseAug
+    p_prob: 0.0
+    p_stddev: 0.005
+    p_clip: 0.02
+    p_apply_extra_tensors:
+      - false
+      - false
+
+  - name: LinearAug
+    p_prob: 0.0
+    p_min_a: 0.9
+    p_max_a: 1.1
+    p_min_b: 0.0
+    p_max_b: 0.0
+    p_channel_independent: true
+    p_apply_extra_tensors:
+      - false
+      - false
+
+  - name: MirrorAug
+    p_prob: 0.0
+    p_mirror_prob: 0.5
+    p_axes:
+      - true
+      - true
+      - false
+    p_apply_extra_tensors:
+      - false
+      - false
