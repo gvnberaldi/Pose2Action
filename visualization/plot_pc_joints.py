@@ -4,53 +4,42 @@ from mpl_toolkits.mplot3d import Axes3D
 import imageio
 import os
 
-def create_gif(pc, joints, idx, output_dir):
-    point_clouds = np.asarray(pc)
-    joints = np.asarray(joints)
+def create_gif(point_clouds, joint_coords, clip_index, output_directory):
 
-    frames = []
+    print(clip_index)
+    # Convert input lists to numpy arrays for easier manipulation
+    point_clouds = np.asarray(point_clouds)
+    joint_coords = np.asarray(joint_coords)
 
-    frames_dir = os.path.join(output_dir, str(idx), 'frames')
-    os.makedirs(frames_dir, exist_ok=True)
+    gif_frames = []
+    frames_directory = os.path.join(output_directory, str(clip_index), 'frames')
+    os.makedirs(frames_directory, exist_ok=True)
 
-    for i, pc in enumerate(point_clouds):
-
-        print(pc.shape)
-        print(f"iterating over point cloud {i} of {len(point_clouds)}")
+    # Loop over each point cloud
+    for i, point_cloud in enumerate(point_clouds):
+        # Create a 3D scatter plot for each point cloud
         fig = plt.figure(figsize=(10, 10))
         ax = fig.add_subplot(111, projection='3d')
-        ax.scatter(pc[:, 0], pc[:, 2], -pc[:, 1], s=0.1, c=pc[:, 2], cmap='viridis')
+        ax.scatter(point_cloud[:, 0], -point_cloud[:, 1], point_cloud[:, 2], s=0.1, c=point_cloud[:, 2], cmap='viridis')
 
-        joint_coords = joints[i]
+        # Overlay the joint coordinates on the scatter plot
+        ax.scatter(joint_coords[i][:, 0], -joint_coords[i][:, 1], joint_coords[i][:, 2], c='r', s=20)
 
-        ax.scatter(joint_coords[:, 0], joint_coords[:, 2], -joint_coords[:, 1],   c='r', s=20)
-
-        # Set the limits of the axes
-        ax.set_xlim([-1, 1.5])
-        #ax.set_ylim([-0.4, 0.6])
-        ax.set_zlim([-1, 1.5])
-
-
-        ax.view_init(elev=180, azim=-90)  # frontal view
-
-
-        # Remove the axes for a cleaner look
-        #ax.axis('off')
-
-        # Set the names of the axes
+        # Set the view limits and labels
+        ax.set_xlim([-1.5, 1.5])
+        ax.set_ylim([-1.5, 1.5])
+        ax.set_zlim([0.5, 3.5])
+        ax.view_init(elev=90, azim=90)
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
 
-        #ax.set_box_aspect([1,1,1])
-
-        # Save the frame in the temporary directory with a higher resolution
-        frame_path = os.path.join(frames_dir, f'frame_{i}.png')
+        frame_path = os.path.join(frames_directory, f'frame_{i}.png')
         plt.savefig(frame_path, dpi=300)
-        frames.append(imageio.imread(frame_path))
+        gif_frames.append(imageio.imread(frame_path))
+
         plt.close()
 
-    # Create a gif from the frames
-
-    gif_name = os.path.join(output_dir, str(idx), str(idx)+'.gif')
-    imageio.mimsave(gif_name, frames, 'GIF', duration=0.2)
+    # Combine the frames into a gif and save it
+    gif_path = os.path.join(output_directory, str(clip_index), f'{clip_index}.gif')
+    imageio.mimsave(gif_path, gif_frames, 'GIF', duration=0.2)
