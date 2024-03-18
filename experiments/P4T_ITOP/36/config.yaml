@@ -5,7 +5,7 @@ wandb_active: false
 seed: 0
 model: 'P4Transformer'
 wandb_project: 'hpe'
-mode_train: True
+mode_train: False
 
 
 # input
