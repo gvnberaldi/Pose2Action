@@ -7,6 +7,10 @@ import tqdm
 from torch.utils.data import Dataset
 from scipy.spatial.distance import cdist
 
+script_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.join(script_dir, '../visualization'))
+
+from plot_pc_joints import create_gif
 
 
 def farthest_point_sampling(points, num_samples):
@@ -41,13 +45,14 @@ class ITOP(Dataset):
         point_clouds = []
 
         t = "train" if train else "test"
+
+        labels_file = h5py.File(os.path.join(root, labels_file), 'r')
         for pc_name in tqdm.tqdm(point_cloud_names, f"Loading {t} point clouds"):
             point_clouds.append(np.load(os.path.join(point_clouds_folder, pc_name))['arr_0'])
 
-        labels_file = h5py.File(os.path.join(root, labels_file), 'r')
-
         identifiers = labels_file['id'][:]
         joints = labels_file['real_world_coordinates'][:]
+        is_valid = labels_file['is_valid'][:]
 
         labels_file.close()
 
@@ -56,23 +61,24 @@ class ITOP(Dataset):
         clip_points = []
         clip_joints = []
         for frame_idx in range(0, identifiers.shape[0] - 1):
-            current_identifier = identifiers[frame_idx]
-            next_identifier = identifiers[frame_idx + 1]
+            if is_valid[frame_idx]:
+                current_identifier = identifiers[frame_idx]
+                next_identifier = identifiers[frame_idx + 1]
 
-            clip_points.append(point_clouds[frame_idx])
-            clip_joints.append(joints[frame_idx])
+                clip_points.append(point_clouds[frame_idx])
+                clip_joints.append(joints[frame_idx])
 
-            # frames are not from the same sequence => finalize clip and add it to sequences
-            if current_identifier[:2] != next_identifier[:2]:
-                n_frames = len(clip_points)
-                self.videos.append(clip_points)
-                self.labels.append(clip_joints)
-                clip_points = []
-                clip_joints = []
+                # frames are not from the same sequence => finalize clip and add it to sequences
+                if current_identifier[:2] != next_identifier[:2]:
+                    n_frames = len(clip_points)
+                    self.videos.append(clip_points)
+                    self.labels.append(clip_joints)
+                    clip_points = []
+                    clip_joints = []
 
-                for t in range(0, n_frames - frame_interval * (frames_per_clip - 1)):
-                    self.index_map.append((clip_index, t))
-                clip_index += 1
+                    for t in range(0, n_frames - frame_interval * (frames_per_clip - 1)):
+                        self.index_map.append((clip_index, t))
+                    clip_index += 1
 
         self.frames_per_clip = frames_per_clip
         self.frame_interval = frame_interval
@@ -133,9 +139,13 @@ class ITOP(Dataset):
 
 
 if __name__ == '__main__':
-    dataset = ITOP(root='/data/iballester/datasets/ITOP/SIDE', frames_per_clip=16, train=False)
+    dataset = ITOP(root='/data/iballester/datasets/ITOP_old/ITOP-PREP-COMPL/SIDE', frames_per_clip=1, train=False)
+    print(len(dataset))
+    output_dir = 'visualization/gifs'
     clip, label, video_idx = dataset[0]
-    print(clip)
-    print(label)
-    print(video_idx)
+    #print(clip)
+    #print(label)
+    #print(video_idx)
     print(dataset.num_classes)
+
+    create_gif(clip, label, video_idx, output_dir)
