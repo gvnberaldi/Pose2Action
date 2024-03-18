@@ -1,6 +1,6 @@
 # Configurations for model training
 dataset: 'ITOP-SIDE'
-device_args: 2
+device_args: 4
 wandb_active: false
 seed: 0
 model: 'P4Transformer'
@@ -12,7 +12,7 @@ mode_train: False
 clip_len: 1
 frame_interval: 1
 max_frame_interval: 20
-num_points: 2048
+num_points: 4096
 
 
 #threshold

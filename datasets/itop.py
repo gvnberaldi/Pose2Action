@@ -139,13 +139,13 @@ class ITOP(Dataset):
 
 
 if __name__ == '__main__':
-    dataset = ITOP(root='/data/iballester/datasets/ITOP_old/ITOP-PREP-COMPL/SIDE', num_points=4096, frames_per_clip=20, train=False)
+    dataset = ITOP(root='/data/iballester/datasets/ITOP-CLEAN/SIDE', num_points=2048, frames_per_clip=1, train=False)
     #print(len(dataset))
     output_dir = 'visualization/gifs'
     clip, label, video_idx = dataset[300]
-    #print(clip)
+    print(clip.shape)
     #print(label)
     #print(video_idx)
     print(dataset.num_classes)
 
-    create_gif(clip, label, video_idx, output_dir)
+   # create_gif(clip, label, video_idx, output_dir)
