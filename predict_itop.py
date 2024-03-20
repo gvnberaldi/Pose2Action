@@ -106,8 +106,8 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='P4Transformer Model Training on ITOP dataset')
-    parser.add_argument('--config', type=str, default='P4T_ITOP/36', help='Path to the YAML config file')
-    parser.add_argument('--model', type=str, default='experiments/P4T_ITOP/36/log/best_model.pth', help='Path to the YAML config file')
+    parser.add_argument('--config', type=str, default='P4T_ITOP/37-no-sp', help='Path to the YAML config file')
+    parser.add_argument('--model', type=str, default='experiments/P4T_ITOP/37-no-sp/log/best_model.pth', help='Path to the YAML config file')
 
     args = parser.parse_args()
     main(args)

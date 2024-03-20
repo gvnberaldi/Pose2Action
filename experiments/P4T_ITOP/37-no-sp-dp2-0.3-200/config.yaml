@@ -42,7 +42,7 @@ mlp_dim: 2048
 # training
 batch_size: 24
 epochs: 200
-workers: 8
+workers: 16
 lr: 0.01
 momentum: 0.9
 weight_decay: 1e-4
@@ -54,7 +54,7 @@ lr_warmup_epochs: 0
 # output
 log_dir: "log"
     # resume
-resume: 'experiments/P4T_ITOP/37-no-sp-dp2/log/best_model.pth'
+resume: 'experiments/P4T_ITOP/37-no-sp-dp2-0.3/log/best_model.pth'
 start_epoch: 0
     # losses
 loss_type: 'l1'   # choices=['std_cross_entropy', 'weighted_cross_entropy', 'focal'],
