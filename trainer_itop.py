@@ -19,7 +19,7 @@ def train_one_epoch(model, criterion, optimizer, lr_scheduler, data_loader, devi
     total_pck = np.zeros(15)
     total_map = 0.0
 
-    for batch_idx, (clip, target, _) in enumerate(tqdm(data_loader, desc=header)):
+    for batch_idx, (clip, target, frame_indices) in enumerate(tqdm(data_loader, desc=header)):
         clip, target = clip.to(device), target.to(device)
         output = model(clip).reshape(target.shape)
 
@@ -79,6 +79,8 @@ def load_data(config):
         frame_interval=config['frame_interval'],
         num_points=config['num_points'],
         train=True,
+        use_valid_only=config['use_valid_only']
+
     )
 
     dataset_test = ITOP(
@@ -87,6 +89,8 @@ def load_data(config):
         frame_interval=config['frame_interval'],
         num_points=config['num_points'],
         train=False,
+        use_valid_only=config['use_valid_only']
+
     )
     data_loader = torch.utils.data.DataLoader(dataset, batch_size=config['batch_size'], shuffle=True, num_workers=config['workers'])
     data_loader_test = torch.utils.data.DataLoader(dataset_test, batch_size=config['batch_size'], num_workers=config['workers'])
@@ -98,6 +102,8 @@ def create_criterion(config, data_loader, num_classes, device):
 
     if loss_type == 'mje':
         return metrics.MJE()
+    elif loss_type == 'smooth_l1':
+        return nn.SmoothL1Loss()
     elif loss_type == 'l1':
         return nn.L1Loss()
     elif loss_type == 'mse':

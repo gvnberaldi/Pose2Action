@@ -38,7 +38,9 @@ def create_model(config, num_classes):
                     'heads': config.get('heads'),
                     'dim_head': config.get('dim_head'),
                     'mlp_dim': config.get('mlp_dim'),
-                    'num_classes': num_classes
+                    'num_classes': num_classes,
+                    'dropout1': config.get('dropout1'),
+                    'dropout2': config.get('dropout2')
                 },
                 'PSTNet': {
                     'radius': config.get('radius'),
