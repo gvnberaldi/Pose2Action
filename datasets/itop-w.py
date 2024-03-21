@@ -13,8 +13,6 @@ sys.path.append(os.path.join(ROOT_DIR, 'visualization'))
 
 from plot_pc_joints import create_gif
 
-
-
 class ITOP(Dataset):
     def __init__(self, root, frames_per_clip=16, frame_interval=1, num_points=2048, train=True, use_valid_only=False):
         super(ITOP, self).__init__()
@@ -22,6 +20,7 @@ class ITOP(Dataset):
         self.videos = []
         self.labels = []
         self.identifiers = []
+        self.is_weak = []
         self.index_map = []
 
         # LOAD DATA FROM FILES
@@ -30,7 +29,7 @@ class ITOP(Dataset):
 
         if train:
             point_clouds_folder = os.path.join(root, "train")
-            labels_file = "train_labels.h5"
+            labels_file = "weakly_train_labels.h5"
         if not train:
             point_clouds_folder = os.path.join(root, "test")
             labels_file = "test_labels.h5"
@@ -47,6 +46,7 @@ class ITOP(Dataset):
         identifiers = labels_file['id'][:]
         joints = labels_file['real_world_coordinates'][:]
         is_valid_flags = labels_file['is_valid'][:]
+        is_weak_flags = labels_file['is_weak'][:]
 
         labels_file.close()
 
@@ -55,6 +55,7 @@ class ITOP(Dataset):
         clip_points = []
         clip_joints = []
         clip_ids = []
+        clip_is_weak = []
 
         for frame_idx in range(0, identifiers.shape[0]):
             current_identifier = identifiers[frame_idx]
@@ -71,6 +72,7 @@ class ITOP(Dataset):
                 clip_points.append(point_clouds[frame_idx])
                 clip_joints.append(joints[frame_idx])
                 clip_ids.append(current_identifier)
+                clip_is_weak.append(is_weak_flags[frame_idx])
 
             # frames are not from the same sequence => finalize clip and add it to sequences
             # frame idx is the last idx => there's no next_identifies => still finalize the clip
@@ -79,9 +81,11 @@ class ITOP(Dataset):
                 self.videos.append(clip_points)
                 self.labels.append(clip_joints)
                 self.identifiers.append(clip_ids)
+                self.is_weak.append(any(clip_is_weak))  # Check if any frame in the clip is weak
                 clip_points = []
                 clip_joints = []
                 clip_ids = []
+                clip_is_weak = []
 
                 for t in range(0, n_frames - frame_interval * (frames_per_clip - 1)):
                     self.index_map.append((clip_index, t))
@@ -102,9 +106,11 @@ class ITOP(Dataset):
     def __getitem__(self, idx):
         index, t = self.index_map[idx]
 
+        # Get the data for the current sample
         video = self.videos[index]
         label = self.labels[index]
         identifiers = self.identifiers[index]
+        is_weak = self.is_weak[index]  # Get the 'is_weak' flag for the current clip
 
         clip = [video[t + i * self.frame_interval] for i in range(self.frames_per_clip)]
         for i, p in enumerate(clip):
@@ -120,31 +126,20 @@ class ITOP(Dataset):
             clip[i] = p[r, :]
         clip = np.array(clip)
 
-        # here augmentations missing!
-        """
-        if self.train:
-            # scale the points
-            scales = np.random.uniform(0.9, 1.1, size=3)
-            clip = clip * scales
-
-        clip = clip / 300
-        """
-
         label = np.array([label[t + i * self.frame_interval] for i in range(self.frames_per_clip)])
         ids = [identifiers[t + i * self.frame_interval] for i in range(self.frames_per_clip)]
 
-        return clip.astype(np.float32), label.astype(np.float32), np.array([tuple(map(int, s.decode('utf-8').split('_'))) for s in ids])
+        return clip.astype(np.float32), label.astype(np.float32), np.array([tuple(map(int, s.decode('utf-8').split('_'))) for s in ids]), is_weak
 
 
 if __name__ == '__main__':
-    dataset = ITOP(root='/data/iballester/datasets/ITOP-CLEAN/SIDE', num_points=2048, frames_per_clip=1, train=True, use_valid_only=False)
+    dataset = ITOP(root='/data/iballester/datasets/ITOP-CLEAN/SIDE', num_points=4096, frames_per_clip=1, train=True, use_valid_only=False)
     print(len(dataset))
     output_dir = 'visualization/gifs'
-    clip, label, frame_idx = dataset[20005]
+    clip, label, frame_idx, is_weak = dataset[20005]
     print(clip.shape)
-    #print(label)
     print(frame_idx)
-
+    print(is_weak)
     print(dataset.num_classes)
 
     create_gif(clip, label, frame_idx, output_dir)
