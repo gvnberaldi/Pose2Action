@@ -6,6 +6,15 @@ import tqdm
 
 from torch.utils.data import Dataset
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = os.path.dirname(BASE_DIR)
+sys.path.append(ROOT_DIR)
+sys.path.append(os.path.join(ROOT_DIR, 'visualization'))
+
+from plot_pc_joints import create_gif
+
+
+
 class ITOP(Dataset):
     def __init__(self, root, frames_per_clip=16, frame_interval=1, num_points=2048, train=True, use_valid_only=False):
         super(ITOP, self).__init__()
@@ -137,4 +146,4 @@ if __name__ == '__main__':
     print(frame_idx)
     print(dataset.num_classes)
 
-   # create_gif(clip, label, video_idx, output_dir)
+    create_gif(clip, label, frame_idx, output_dir)

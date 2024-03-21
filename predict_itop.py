@@ -98,7 +98,7 @@ def main(args):
         print(target.shape)
         print(output.shape)
 
-        gif_gt_out_pc(clip, target, output, i, 'visualization/gifs/test')
+        gif_gt_out_pc(clip, target, output, id, 'visualization/gifs/37-no-sp-format')
 
     #print(f"Validation Loss: {val_clip_loss:.4f}")
     #print(f"Validation mAP: {val_map:.4f}")

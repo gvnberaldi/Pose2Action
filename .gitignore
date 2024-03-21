@@ -31,3 +31,5 @@ data/
 .idea/
 
 /visualization/gifs/
+
+/experiments/0-predictions/

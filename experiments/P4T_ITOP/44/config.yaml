@@ -1,11 +1,11 @@
 # Configurations for model training
 dataset: 'ITOP-SIDE'
-device_args: 2
+device_args: 1
 wandb_active: false
 seed: 0
 model: 'P4Transformer'
 wandb_project: 'hpe'
-mode_train: false
+mode_train: true
 mode_val: true
 use_valid_only: true
 

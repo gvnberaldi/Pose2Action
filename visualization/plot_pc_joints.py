@@ -4,9 +4,11 @@ from mpl_toolkits.mplot3d import Axes3D
 import imageio
 import os
 
-def create_gif(point_clouds, joint_coords, clip_index, output_directory):
+def create_gif(point_clouds, joint_coords, video_id, output_directory):
+    video_id_tuple = tuple(video_id.flatten())
+    clip_index = f"{video_id_tuple[0]:01}_{video_id_tuple[1]:05}".encode('utf-8')
+    print("Name: ", clip_index)
 
-    print(clip_index)
     # Convert input lists to numpy arrays for easier manipulation
     point_clouds = np.asarray(point_clouds)
     joint_coords = np.asarray(joint_coords)
@@ -44,9 +46,12 @@ def create_gif(point_clouds, joint_coords, clip_index, output_directory):
     gif_path = os.path.join(output_directory, str(clip_index), f'{clip_index}.gif')
     imageio.mimsave(gif_path, gif_frames, 'GIF', duration=0.2)
 
-def gif_gt_out_pc(point_clouds, joint_coords, joints_output, clip_index, output_directory):
+def gif_gt_out_pc(point_clouds, joint_coords, joints_output, video_id, output_directory):
 
-    print(clip_index)
+    video_id_tuple = tuple(video_id.flatten())
+    clip_index = f"{video_id_tuple[0]:01}_{video_id_tuple[1]:05}".encode('utf-8')
+    print("Name: ", clip_index)
+
     # Convert input lists to numpy arrays for easier manipulation
     point_clouds = np.asarray(point_clouds)
     joint_coords = np.asarray(joint_coords)
