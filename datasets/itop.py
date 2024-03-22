@@ -30,7 +30,7 @@ class ITOP(Dataset):
 
         if train:
             point_clouds_folder = os.path.join(root, "train")
-            labels_file = "train_labels.h5"
+            labels_file = "weakly_train_labels.h5"
         if not train:
             point_clouds_folder = os.path.join(root, "test")
             labels_file = "test_labels.h5"
@@ -140,7 +140,7 @@ if __name__ == '__main__':
     dataset = ITOP(root='/data/iballester/datasets/ITOP-CLEAN/SIDE', num_points=2048, frames_per_clip=1, train=True, use_valid_only=False)
     print(len(dataset))
     output_dir = 'visualization/gifs'
-    clip, label, frame_idx = dataset[20005]
+    clip, label, frame_idx = dataset[2662]
     print(clip.shape)
     #print(label)
     print(frame_idx)
