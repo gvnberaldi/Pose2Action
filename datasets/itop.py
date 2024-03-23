@@ -30,7 +30,7 @@ class ITOP(Dataset):
 
         if train:
             point_clouds_folder = os.path.join(root, "train")
-            labels_file = "weakly_train_labels.h5"
+            labels_file = "train_labels.h5"
         if not train:
             point_clouds_folder = os.path.join(root, "test")
             labels_file = "test_labels.h5"
@@ -69,7 +69,12 @@ class ITOP(Dataset):
             # and the point cloud contains at least one point
             if (not use_valid_only or (use_valid_only and is_valid_flags[frame_idx] == 1)) and point_clouds[frame_idx].size > 0:
                 clip_points.append(point_clouds[frame_idx])
-                clip_joints.append(joints[frame_idx])
+                if train and frame_idx < identifiers.shape[0] - 1:  # use joints of frame_idx + 1 in training, if not last frame
+                    clip_joints.append(joints[frame_idx + 1])
+                elif not train:  # use joints of frame_idx in testing or if it's the last frame
+                    clip_joints.append(joints[frame_idx])
+                else:
+                    clip_joints.append(joints[frame_idx])
                 clip_ids.append(current_identifier)
 
             # frames are not from the same sequence => finalize clip and add it to sequences

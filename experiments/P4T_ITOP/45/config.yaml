@@ -1,11 +1,11 @@
 # Configurations for model training
 dataset: 'ITOP-SIDE'
-device_args: 0
+device_args: 4
 wandb_active: false
 seed: 0
 model: 'P4Transformer'
 wandb_project: 'hpe'
-mode_train: false
+mode_train: true
 mode_val: true
 use_valid_only: true
 
@@ -26,6 +26,8 @@ nsamples: 32
 spatial_stride: 32
 temporal_kernel_size: 1
 temporal_stride: 1
+dropout1: 0.0
+dropout2: 0.0
 # embedding
 emb_relu: false
 # transformer
