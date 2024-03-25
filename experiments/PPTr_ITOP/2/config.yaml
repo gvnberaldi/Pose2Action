@@ -21,8 +21,8 @@ threshold: 0.1
 
 # P4D
 radius: 0.7
-nsamples: 32
-spatial_stride: 32
+nsamples: 64
+spatial_stride: 64
 temporal_kernel_size: 1
 temporal_stride: 1
 # embedding

@@ -1,6 +1,6 @@
 # Configurations for model training
 dataset: 'ITOP-SIDE'
-device_args: 7
+device_args: 0
 wandb_active: false
 seed: 0
 model: 'P4Transformer'

@@ -30,7 +30,7 @@ class ITOP(Dataset):
 
         if train:
             point_clouds_folder = os.path.join(root, "train")
-            labels_file = "weakly_train_labels_37_14.h5"
+            labels_file = "train_labels.h5"
         if not train:
             point_clouds_folder = os.path.join(root, "test")
             labels_file = "test_labels.h5"

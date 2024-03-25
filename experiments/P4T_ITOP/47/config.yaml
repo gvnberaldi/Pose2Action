@@ -1,12 +1,14 @@
 # Configurations for model training
 dataset: 'ITOP-SIDE'
-device_args: 2
+device_args: 6
 wandb_active: false
 seed: 0
-model: 'PrimitiveTransformer'
+model: 'P4Transformer'
 wandb_project: 'hpe'
-mode_train: True
-use_valid_only: True
+mode_train: true
+mode_val: true
+use_valid_only: true
+
 
 # input
 clip_len: 1
@@ -18,27 +20,29 @@ num_points: 4096
 #threshold
 threshold: 0.1
 
-
 # P4D
 radius: 0.7
-nsamples: 32
-spatial_stride: 32
+nsamples: 16
+spatial_stride: 16
 temporal_kernel_size: 1
 temporal_stride: 1
 # embedding
 emb_relu: false
 # transformer
-dim: 2048
+dim: 1024
 depth: 5
 heads: 8
-dim_head: 128
-mlp_dim: 1024
+dim_head: 256
+mlp_dim: 2048
+dropout1: 0.0
+dropout2: 0.0
+
 
 
 # training
 batch_size: 24
-epochs: 50
-workers: 10
+epochs: 100
+workers: 8
 lr: 0.01
 momentum: 0.9
 weight_decay: 1e-4
@@ -46,7 +50,7 @@ lr_milestones:
   - 20
   - 30
 lr_gamma: 1.0
-lr_warmup_epochs: 10
+lr_warmup_epochs: 0
 # output
 log_dir: "log"
     # resume
