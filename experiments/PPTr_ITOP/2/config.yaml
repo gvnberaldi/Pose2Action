@@ -57,37 +57,11 @@ loss_type: 'l1'   # choices=['std_cross_entropy', 'weighted_cross_entropy', 'foc
 save: True
 
 DS_AUGMENTS_CFG:
-  - name: CropPtsAug
-    p_prob: 0.0
-    p_max_pts: 1500
-    p_crop_ratio: 1
-    p_apply_extra_tensors:
-      - false
-      - false
-
   - name: RotationAug
     p_prob: 0.0
     p_axis: 1
     p_min_angle: 0.0
     p_max_angle: 6.28318530718
-    p_apply_extra_tensors:
-      - false
-      - false
-
-  - name: RotationAug
-    p_prob: 0.0
-    p_axis: 0
-    p_min_angle: -0.1308996939
-    p_max_angle: 0.1308996939
-    p_apply_extra_tensors:
-      - false
-      - false
-
-  - name: RotationAug
-    p_prob: 0.0
-    p_axis: 2
-    p_min_angle: -0.1308996939
-    p_max_angle: 0.1308996939
     p_apply_extra_tensors:
       - false
       - false

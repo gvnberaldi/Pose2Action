@@ -1,18 +1,19 @@
 # Configurations for model training
-dataset: 'ITOP-SIDE-PRE'
-device_args: 2
+dataset: 'ITOP-SIDE'
+device_args: 6
 wandb_active: false
 seed: 0
-model: 'HPETransformer'
+model: 'P4Transformer'
 wandb_project: 'hpe'
-mode_train: True
+mode_train: true
+mode_val: true
+use_valid_only: true
 
 
 # input
 clip_len: 1
 frame_interval: 1
-max_frame_interval: 20
-num_points: 2048
+num_points: 4096
 
 
 #threshold
@@ -32,12 +33,14 @@ depth: 5
 heads: 8
 dim_head: 256
 mlp_dim: 2048
+dropout1: 0.0
+dropout2: 0.0
 
 
 
 # training
 batch_size: 24
-epochs: 50
+epochs: 100
 workers: 8
 lr: 0.01
 momentum: 0.9
@@ -93,8 +96,8 @@ DS_AUGMENTS_CFG:
       - false
 
   - name: NoiseAug
-    p_prob: 0.0
-    p_stddev: 0.005
+    p_prob: 1.0
+    p_stddev: 0.01
     p_clip: 0.02
     p_apply_extra_tensors:
       - false

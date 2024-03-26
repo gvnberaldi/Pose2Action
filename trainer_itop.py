@@ -79,8 +79,8 @@ def load_data(config):
         frame_interval=config['frame_interval'],
         num_points=config['num_points'],
         train=True,
-        use_valid_only=config['use_valid_only']
-
+        use_valid_only=config['use_valid_only'],
+        aug_list=config['DS_AUGMENTS_CFG']
     )
 
     dataset_test = ITOP(
@@ -89,9 +89,9 @@ def load_data(config):
         frame_interval=config['frame_interval'],
         num_points=config['num_points'],
         train=False,
-        use_valid_only=config['use_valid_only']
-
+        use_valid_only=config['use_valid_only'],
     )
+    
     data_loader = torch.utils.data.DataLoader(dataset, batch_size=config['batch_size'], shuffle=True, num_workers=config['workers'])
     data_loader_test = torch.utils.data.DataLoader(dataset_test, batch_size=config['batch_size'], num_workers=config['workers'])
     return data_loader, data_loader_test, dataset.num_classes

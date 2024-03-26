@@ -2,21 +2,29 @@ import os
 import sys
 import numpy as np
 import h5py
+import torch
 import tqdm
 
 from torch.utils.data import Dataset
+
+
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(BASE_DIR)
 sys.path.append(ROOT_DIR)
 sys.path.append(os.path.join(ROOT_DIR, 'visualization'))
+sys.path.append(os.path.join(ROOT_DIR, 'augmentations'))
+
+from augmentations.AugPipeline import AugPipeline
+
 
 from plot_pc_joints import create_gif
 
 
 
 class ITOP(Dataset):
-    def __init__(self, root, frames_per_clip=16, frame_interval=1, num_points=2048, train=True, use_valid_only=False):
+    def __init__(self, root, frames_per_clip=16, frame_interval=1, num_points=2048, train=True, use_valid_only=False,
+                 aug_list=None):
         super(ITOP, self).__init__()
 
         self.videos = []
@@ -95,6 +103,13 @@ class ITOP(Dataset):
         self.num_points = num_points
         self.train = train
         self.num_classes = frames_per_clip * np.prod(self.labels[0][0].shape) # X frames, 15 joints, 3D point dim
+        
+        # create augmentation pipeline
+        if aug_list is not None:
+            self.aug_pipeline = AugPipeline()
+            self.aug_pipeline.create_pipeline(aug_list)
+        else:
+            self.aug_pipeline = None
 
     def __len__(self):
         return len(self.index_map)
@@ -118,29 +133,82 @@ class ITOP(Dataset):
                 r = np.random.choice(p.shape[0], size=residue, replace=False)
                 r = np.concatenate([np.arange(p.shape[0]) for _ in range(repeat)] + [r], axis=0)
             clip[i] = p[r, :]
-        clip = np.array(clip)
-
-        # here augmentations missing!
-        """
-        if self.train:
-            # scale the points
-            scales = np.random.uniform(0.9, 1.1, size=3)
-            clip = clip * scales
-
-        clip = clip / 300
-        """
-
-        label = np.array([label[t + i * self.frame_interval] for i in range(self.frames_per_clip)])
+        #clip = np.array(clip)
+            
+        clip = torch.FloatTensor(clip)
+        label = torch.FloatTensor([label[t + i * self.frame_interval] for i in range(self.frames_per_clip)])
         ids = [identifiers[t + i * self.frame_interval] for i in range(self.frames_per_clip)]
 
-        return clip.astype(np.float32), label.astype(np.float32), np.array([tuple(map(int, s.decode('utf-8').split('_'))) for s in ids])
+        if self.aug_pipeline is not None:
+            clip, _, label = self.aug_pipeline.augment(clip, label)
+
+        return clip, label, np.array([tuple(map(int, s.decode('utf-8').split('_'))) for s in ids])
 
 
 if __name__ == '__main__':
-    dataset = ITOP(root='/data/iballester/datasets/ITOP-CLEAN/SIDE', num_points=2048, frames_per_clip=1, train=True, use_valid_only=False)
+
+    DS_AUGMENTS_CFG = [
+        {
+            "name": "CropPtsAug",
+            "p_prob": 0.0,
+            "p_max_pts": 1500,
+            "p_crop_ratio": 1,
+            "p_apply_extra_tensors": [False, False]
+        },
+        {
+            "name": "RotationAug",
+            "p_prob": 0.0,
+            "p_axis": 1,
+            "p_min_angle": 0.0,
+            "p_max_angle": 6.28318530718,
+            "p_apply_extra_tensors": [True, False]
+        },
+        {
+            "name": "RotationAug",
+            "p_prob": 0.0,
+            "p_axis": 0,
+            "p_min_angle": -0.1308996939,
+            "p_max_angle": 0.1308996939,
+            "p_apply_extra_tensors": [False, False]
+        },
+        {
+            "name": "RotationAug",
+            "p_prob": 0.0,
+            "p_axis": 2,
+            "p_min_angle": -0.1308996939,
+            "p_max_angle": 0.1308996939,
+            "p_apply_extra_tensors": [False, False]
+        },
+        {
+            "name": "NoiseAug",
+            "p_prob": 1.0,
+            "p_stddev": 0.01,
+            "p_clip": 0.02,
+            "p_apply_extra_tensors": [False, False]
+        },
+        {
+            "name": "LinearAug",
+            "p_prob": 0.0,
+            "p_min_a": 0.9,
+            "p_max_a": 1.1,
+            "p_min_b": 0.0,
+            "p_max_b": 0.0,
+            "p_channel_independent": True,
+            "p_apply_extra_tensors": [True, False]
+        },
+        {
+            "name": "MirrorAug",
+            "p_prob": 0.0,
+            "p_mirror_prob": 0.5,
+            "p_axes": [True, False, False],
+            "p_apply_extra_tensors": [True, False]
+        }
+    ]
+
+    dataset = ITOP(root='/data/iballester/datasets/ITOP-CLEAN/SIDE', num_points=4096, frames_per_clip=8, train=True, use_valid_only=True)
     print(len(dataset))
     output_dir = 'visualization/gifs'
-    clip, label, frame_idx = dataset[2662]
+    clip, label, frame_idx = dataset[10]
     print(clip.shape)
     #print(label)
     print(frame_idx)
