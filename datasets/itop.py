@@ -31,7 +31,7 @@ class ITOP(Dataset):
         self.labels = []
         self.identifiers = []
         self.index_map = []
-
+        index = 0
         # LOAD DATA FROM FILES
         point_clouds_folder = ''
         labels_file = ''
@@ -58,45 +58,39 @@ class ITOP(Dataset):
 
         labels_file.close()
 
-        # USE IDENTIFIES IN FORM XX_YYYYY (XX is subject number, YYYYY is frame number) to parse videos
-        clip_index = 0
-        clip_points = []
-        clip_joints = []
-        clip_ids = []
-
+        # First loop: Add only valid frames to a list
+        valid_frames = []
         for frame_idx in range(0, identifiers.shape[0]):
-            current_identifier = identifiers[frame_idx]
-            next_identifier = -1
-
-            if frame_idx != identifiers.shape[0] - 1:
-                next_identifier = identifiers[frame_idx + 1]
-
-            # add loaded point clouds if
-            # a) use_valid_only flag set to false => use all available frames
-            # b) use_valid_only flag set to true and valid bit with idx frame_idx is set to true
-            # and the point cloud contains at least one point
             if (not use_valid_only or (use_valid_only and is_valid_flags[frame_idx] == 1)) and point_clouds[frame_idx].size > 0:
-                clip_points.append(point_clouds[frame_idx])
-                clip_joints.append(joints[frame_idx])
-                clip_ids.append(current_identifier)
+                valid_frames.append((point_clouds[frame_idx], joints[frame_idx], identifiers[frame_idx]))
 
-            # frames are not from the same sequence => finalize clip and add it to sequences
-            # frame idx is the last idx => there's no next_identifies => still finalize the clip
-            if frame_idx == identifiers.shape[0] - 1 or current_identifier[:2] != next_identifier[:2]:
-                n_frames = len(clip_points)
-                self.videos.append(clip_points)
-                self.labels.append(clip_joints)
-                self.identifiers.append(clip_ids)
-                clip_points = []
-                clip_joints = []
-                clip_ids = []
+        # Second loop: Create videos from contiguous frames
+        video_points = []
+        video_joints = []
+        video_ids = []
+        for frame_idx in range(0, len(valid_frames)):
+            video_points.append(valid_frames[frame_idx][0])
+            video_joints.append(valid_frames[frame_idx][1])
+            video_ids.append(valid_frames[frame_idx][2])
 
-                for t in range(0, n_frames - frame_interval * (frames_per_clip - 1)):
-                    self.index_map.append((clip_index, t))
-                clip_index += 1
+            if frame_idx == len(valid_frames) - 1 or int(valid_frames[frame_idx][2][-5:]) + 1 != int(valid_frames[frame_idx + 1][2][-5:]):
+                n_frames = len(video_points)
+                self.videos.append(video_points)
+                self.labels.append(video_joints)
+                self.identifiers.append(video_ids)
+                video_points = []
+                video_joints = []
+                video_ids = []
 
         if use_valid_only:
-            print(f"Using only frames labeled as valid. From the total of {len(point_clouds)} {type_name} frames using {len(self.index_map)} frames")
+            print(f"Using only frames labeled as valid. From the total of {len(point_clouds)} {type_name} frames using {len(valid_frames)} frames")
+
+        #Third loop: Create index map
+        for video in self.videos:
+            n_frames = len(video)
+            for t in range(n_frames):
+                self.index_map.append((index, t))
+            index += 1
 
         self.frames_per_clip = frames_per_clip
         self.frame_interval = frame_interval
@@ -104,7 +98,7 @@ class ITOP(Dataset):
         self.train = train
         self.num_classes = frames_per_clip * np.prod(self.labels[0][0].shape) # X frames, 15 joints, 3D point dim
         
-        # create augmentation pipeline
+        # Create augmentation pipeline
         if aug_list is not None:
             self.aug_pipeline = AugPipeline()
             self.aug_pipeline.create_pipeline(aug_list)
@@ -121,7 +115,23 @@ class ITOP(Dataset):
         label = self.labels[index]
         identifiers = self.identifiers[index]
 
-        clip = [video[t + i * self.frame_interval] for i in range(self.frames_per_clip)]
+        clip = [] 
+        clip_label = []  
+        clip_ids = []  
+
+        # If the video length is shorter than frames_per_clip, append the frames that exist and then pad with the last frame
+        if len(video) < self.frames_per_clip:
+            clip.extend(video[i] if i < len(video) else video[-1] for i in range(self.frames_per_clip))
+            clip_label.extend(label[i] if i < len(video) else label[-1] for i in range(self.frames_per_clip))
+            clip_ids.extend(identifiers[i] if i < len(video) else identifiers[-1] for i in range(self.frames_per_clip))
+        # If the video length is equal to or longer than frames_per_clip, append the last possible full clip
+        else:
+            last_possible_clip_start = len(video) - self.frames_per_clip*self.frame_interval
+            clip.extend(video[min(t+i*self.frame_interval, last_possible_clip_start + i*self.frame_interval)] for i in range(self.frames_per_clip))
+            clip_label.extend(label[min(t+i*self.frame_interval, last_possible_clip_start + i*self.frame_interval)] for i in range(self.frames_per_clip))
+            clip_ids.extend(identifiers[min(t+i*self.frame_interval, last_possible_clip_start + i*self.frame_interval)] for i in range(self.frames_per_clip))
+            
+
         for i, p in enumerate(clip):
             if p.shape[0] > self.num_points:
                 r = np.random.choice(p.shape[0], size=self.num_points, replace=False)
@@ -136,18 +146,18 @@ class ITOP(Dataset):
         #clip = np.array(clip)
             
         clip = torch.FloatTensor(clip)
-        label = torch.FloatTensor([label[t + i * self.frame_interval] for i in range(self.frames_per_clip)])
-        ids = [identifiers[t + i * self.frame_interval] for i in range(self.frames_per_clip)]
+        clip_label = torch.FloatTensor(clip_label)
+
 
         if self.aug_pipeline is not None:
-            clip, _, label = self.aug_pipeline.augment(clip, label)
+            clip, _, clip_label = self.aug_pipeline.augment(clip, clip_label)
 
-        return clip, label, np.array([tuple(map(int, s.decode('utf-8').split('_'))) for s in ids])
+        return clip, clip_label, np.array([tuple(map(int, s.decode('utf-8').split('_'))) for s in clip_ids])
 
 
 if __name__ == '__main__':
 
-    DS_AUGMENTS_CFG = [
+    DS_AUGMENTS_CFG  = [
         {
             "name": "CropPtsAug",
             "p_prob": 0.0,
@@ -205,11 +215,17 @@ if __name__ == '__main__':
         }
     ]
 
-    dataset = ITOP(root='/data/iballester/datasets/ITOP-CLEAN/SIDE', num_points=4096, frames_per_clip=8, train=True, use_valid_only=True)
-    print(len(dataset))
+    dataset = ITOP(root='/data/iballester/datasets/ITOP-CLEAN/SIDE', num_points=4096, frames_per_clip=8, train=False, use_valid_only=True)
+    print('len dataset: ', len(dataset))
+    print(len(dataset.videos))
+    print(len(dataset.labels))
+    print(len(dataset.identifiers))
+    print(len(dataset.index_map))
+
     output_dir = 'visualization/gifs'
-    clip, label, frame_idx = dataset[10]
+    clip, label, frame_idx = dataset[103]
     print(clip.shape)
+    
     #print(label)
     print(frame_idx)
 
