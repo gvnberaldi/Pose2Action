@@ -32,6 +32,8 @@ def main(args):
     # Data loading code
     print("Loading data from", config['dataset_path'])
     data_loader, data_loader_test, num_classes = load_data(config)
+
+    num_classes=45 #TODO!
     print("Number of unique labels (classes):", num_classes)
 
     model = model_factory.create_model(config, num_classes)
@@ -119,6 +121,6 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='P4Transformer Model Training on ITOP dataset')
-    parser.add_argument('--config', type=str, default='P4T_ITOP/55_seq8_embrelu', help='Path to the YAML config file')
+    parser.add_argument('--config', type=str, default='P4T_ITOP/59_seq11_k3', help='Path to the YAML config file')
     args = parser.parse_args()
     main(args)

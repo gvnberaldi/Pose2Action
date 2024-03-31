@@ -62,6 +62,7 @@ class ITOP(Dataset):
         valid_frames = []
         for frame_idx in range(0, identifiers.shape[0]):
             if (not use_valid_only or (use_valid_only and is_valid_flags[frame_idx] == 1)) and point_clouds[frame_idx].size > 0:
+            #if train or (not train and is_valid_flags[frame_idx] == 1) and point_clouds[frame_idx].size > 0:
                 valid_frames.append((point_clouds[frame_idx], joints[frame_idx], identifiers[frame_idx]))
 
         # Second loop: Create videos from contiguous frames
@@ -148,6 +149,14 @@ class ITOP(Dataset):
         clip = torch.FloatTensor(clip)
         clip_label = torch.FloatTensor(clip_label)
 
+        #print("clip_label.shape: ", clip_label.shape)
+
+        middle_frame_index = clip_label.shape[0] // 2  # Find the index of the middle frame
+        clip_label = clip_label[np.newaxis,middle_frame_index,:]  # Select only the middle frame from the target tensor    
+
+        #print("clip_label.shape2: ", clip_label.shape)
+
+
 
         if self.aug_pipeline is not None:
             clip, _, clip_label = self.aug_pipeline.augment(clip, clip_label)
@@ -215,7 +224,7 @@ if __name__ == '__main__':
         }
     ]
 
-    dataset = ITOP(root='/data/iballester/datasets/ITOP-CLEAN/SIDE', num_points=4096, frames_per_clip=8, train=False, use_valid_only=True)
+    dataset = ITOP(root='/data/iballester/datasets/ITOP-CLEAN/SIDE', num_points=4096, frames_per_clip=5, train=False, use_valid_only=True)
     print('len dataset: ', len(dataset))
     print(len(dataset.videos))
     print(len(dataset.labels))
@@ -231,4 +240,4 @@ if __name__ == '__main__':
 
     print(dataset.num_classes)
 
-    create_gif(clip, label, frame_idx, output_dir)
+    #create_gif(clip, label, frame_idx, output_dir)
