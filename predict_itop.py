@@ -98,7 +98,7 @@ def main(args):
         print(target.shape)
         print(output.shape)
 
-        gif_gt_out_pc(clip, target, output, video_id, 'visualization/gifs/53_seq4_depth8-worst-2')
+        gif_gt_out_pc(clip, target, output, video_id, 'visualization/gifs/56_seq3_k3-worst')
 
     print(f"Validation Loss: {val_clip_loss:.4f}")
     print(f"Validation mAP: {val_map:.4f}")
@@ -106,8 +106,8 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='P4Transformer Model Training on ITOP dataset')
-    parser.add_argument('--config', type=str, default='P4T_ITOP/53_seq4_depth8', help='Path to the YAML config file')
-    parser.add_argument('--model', type=str, default='experiments/P4T_ITOP/53_seq4_depth8/log/best_model.pth', help='Path to the YAML config file')
+    parser.add_argument('--config', type=str, default='P4T_ITOP/56_seq3_k3', help='Path to the YAML config file')
+    parser.add_argument('--model', type=str, default='experiments/P4T_ITOP/56_seq3_k3/log/best_model.pth', help='Path to the YAML config file')
 
     args = parser.parse_args()
     main(args)

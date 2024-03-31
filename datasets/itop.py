@@ -97,7 +97,7 @@ class ITOP(Dataset):
         self.frame_interval = frame_interval
         self.num_points = num_points
         self.train = train
-        self.num_classes = frames_per_clip * np.prod(self.labels[0][0].shape) # X frames, 15 joints, 3D point dim
+        self.num_classes = np.prod(self.labels[0][0].shape) # 15 joints, 3D point dim
         
         # Create augmentation pipeline
         if aug_list is not None:
@@ -151,8 +151,8 @@ class ITOP(Dataset):
 
         #print("clip_label.shape: ", clip_label.shape)
 
-        #middle_frame_index = clip_label.shape[0] // 2  # Find the index of the middle frame
-        #clip_label = clip_label[np.newaxis,middle_frame_index,:]  # Select only the middle frame from the target tensor    
+        middle_frame_index = clip_label.shape[0] // 2  # Find the index of the middle frame
+        clip_label = clip_label[np.newaxis,middle_frame_index,:]  # Select only the middle frame from the target tensor    
 
         #print("clip_label.shape2: ", clip_label.shape)
 
@@ -224,7 +224,7 @@ if __name__ == '__main__':
         }
     ]
 
-    dataset = ITOP(root='/data/iballester/datasets/ITOP-CLEAN/SIDE', num_points=4096, frames_per_clip=4, train=False, use_valid_only=True)
+    dataset = ITOP(root='/data/iballester/datasets/ITOP-CLEAN/SIDE', num_points=4096, frames_per_clip=1, train=False, use_valid_only=True)
     print('len dataset: ', len(dataset))
     print(len(dataset.videos))
     print(len(dataset.labels))
@@ -232,7 +232,7 @@ if __name__ == '__main__':
     print(len(dataset.index_map))
 
     output_dir = 'visualization/gifs'
-    clip, label, frame_idx = dataset[444]
+    clip, label, frame_idx = dataset[300]
     print(clip.shape)
     
     #print(label)
@@ -240,4 +240,4 @@ if __name__ == '__main__':
 
     print(dataset.num_classes)
 
-    create_gif(clip, label, frame_idx, output_dir)
+    create_gif(clip, label, frame_idx, output_dir, plot_lines=True)
