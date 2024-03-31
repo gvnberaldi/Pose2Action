@@ -9,16 +9,16 @@ class DropAug(Augmentation):
     """
 
     def __init__(self, 
-                 p_prob = 1.0,
-                 p_apply_extra_tensors=[],
-                 p_drop_prob = 0.05,
-                 p_keep_zeros = True, 
+                 p_prob=1.0,
+                 apply_on_gt=True,
+                 p_drop_prob=0.05,
+                 p_keep_zeros=True,
                  **kwargs):
         """Constructor.
 
         Args:
             p_prob (float): Probability of executing this augmentation.
-            p_apply_extra_tensors (list bool): List of boolean indicating
+            p_apply_extra_tensors (bool): Boolean indicating
                 if the augmentation should be used to the extra tensors.
             p_prob (float): Remove probability.
             p_keep_zeros (bool): Boolean that indicates if the 
@@ -30,12 +30,11 @@ class DropAug(Augmentation):
         self.keep_zeros_ = p_keep_zeros
 
         # Super class init.
-        super(DropAug, self).__init__(p_prob, p_apply_extra_tensors)
-
+        super(DropAug, self).__init__(p_prob, apply_on_gt)
 
     def __compute_augmentation__(self,
                                  p_tensor,
-                                 p_extra_tensors = []):
+                                 p_gt_tensor=None):
         """Abstract method to implement the augmentation.
 
         Args:
@@ -44,26 +43,25 @@ class DropAug(Augmentation):
         Return:
             aug_tensor (tensor): Augmented tensor.
             params (tuple): Parameters selected for the augmentation.
-            p_extra_tensors (list): List of extra tensors.
+            p_gt_tensor (tensor): Ground Truth tensor.
         """
         device = p_tensor.device
         mask = torch.rand(p_tensor[:, 0].shape).to(p_tensor.device) > self.drop_prob_
         
         if self.keep_zeros_:
             aug_tensor = p_tensor*mask + torch.ones_like(p_tensor)*(1.-mask)
-            aug_extra_tensors = []
-            for cur_iter, cur_tensor in enumerate(p_extra_tensors):
-                if self.apply_extra_tensors_[cur_iter]:
-                    aug_extra_tensors.append(cur_tensor*mask + torch.ones_like(cur_tensor)*(1.-mask))
-                else:
-                    aug_extra_tensors.append(cur_tensor)
+
+            if self.apply_on_gt:
+                augmented_gt_tensor = p_gt_tensor * mask + torch.ones_like(p_gt_tensor) * (1. - mask)
+            else:
+                augmented_gt_tensor = p_gt_tensor
+
         else:
             aug_tensor = p_tensor[mask]
-            aug_extra_tensors = []
-            for cur_iter, cur_tensor in enumerate(p_extra_tensors):
-                if self.apply_extra_tensors_[cur_iter]:
-                    aug_extra_tensors.append(cur_tensor[mask])
-                else:
-                    aug_extra_tensors.append(cur_tensor)
 
-        return aug_tensor, (mask,), aug_extra_tensors
+            if self.apply_on_gt:
+                augmented_gt_tensor = p_gt_tensor[mask]
+            else:
+                augmented_gt_tensor = p_gt_tensor
+
+        return aug_tensor, (mask, ), augmented_gt_tensor

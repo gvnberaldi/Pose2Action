@@ -54,27 +54,27 @@ class AugPipeline:
         for cur_aug in self.pipeline_:
             cur_aug.increase_epoch_counter()
 
-    def augment(self, clip, p_extra_tensors=[]):
+    def augment(self, clip, gt):
         """Method to augment a tensor.
 
         Args:
             clip (list of tensors): Input clip where each element is a tensor.
-            p_extra_tensors (list): List of extra tensors.
+            gt (list): List of ground truth for each element from clip.
 
         Return:
             aug_clip (list of tensors): Augmented clip with the same dimensions as input.
             params (list of tuples): List of parameters selected for each step of the augmentation.
-            aug_extra_tensors (list): List of augmented extra tensors.
+            aug_gt (list of tensors): Ground truth of the same dimensions as aug_clip.
         """
 
         aug_clip = []
         aug_param_list = []
+        aug_gt = []
         prob = []
 
         mirror_probs = np.random.random(3)
 
         angle = torch.rand(1).item()
-
 
         for cur_aug in enumerate(self.pipeline_):
             prob.append(torch.rand(1).item())
@@ -92,7 +92,7 @@ class AugPipeline:
                 a = torch.rand(cur_shape)
                 b = torch.rand(cur_shape)
                 
-                cur_aug_object.set_a_b(a,b)
+                cur_aug_object.set_a_b(a, b)
 
         for i, p_tensor in enumerate(clip):
             # Convert to PyTorch tensors if input is a NumPy array
@@ -101,19 +101,18 @@ class AugPipeline:
             else:
                 cur_tensor = p_tensor.to(torch.float32)
 
-            if isinstance(p_extra_tensors, list):
-                cur_extra_tensors = [torch.from_numpy(extra).to(torch.float32) if isinstance(extra, np.ndarray) else extra.to(torch.float32) for extra in p_extra_tensors]
-            else:
-                cur_extra_tensors = p_extra_tensors.to(torch.float32)
+            cur_gt = gt[i]
+            cur_gt = torch.from_numpy(cur_gt).to(torch.float32) if isinstance(cur_gt, np.ndarray) else cur_gt.to(torch.float32)
 
             cur_aug_param_list = []
 
             for j, cur_aug in enumerate(self.pipeline_):
                 if prob[j] <= cur_aug.prob_:
-                    cur_tensor, cur_params, cur_extra_tensors = cur_aug.__compute_augmentation__(
-                        cur_tensor, cur_extra_tensors)
+                    cur_tensor, cur_params, cur_gt = cur_aug.__compute_augmentation__(
+                        cur_tensor, cur_gt)
                     cur_aug_param_list.append((cur_aug.__class__.__name__, cur_params))
             aug_clip.append(cur_tensor.numpy())
             aug_param_list.append(cur_aug_param_list)
+            aug_gt.append(cur_gt)
 
-        return torch.FloatTensor(aug_clip), aug_param_list, torch.stack(cur_extra_tensors)
+        return torch.FloatTensor(aug_clip), aug_param_list, torch.stack(aug_gt)

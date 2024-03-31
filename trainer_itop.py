@@ -8,8 +8,6 @@ import numpy as np
 from scripts import metrics
 import scripts.utils as utils
 from sklearn.metrics import f1_score, classification_report
-from torch.optim.lr_scheduler import OneCycleLR
-
 
 def train_one_epoch(model, criterion, optimizer, lr_scheduler, data_loader, device, epoch, threshold):
     model.train()
@@ -80,7 +78,7 @@ def load_data(config):
         num_points=config['num_points'],
         train=True,
         use_valid_only=config['use_valid_only'],
-        aug_list=config['DS_AUGMENTS_CFG']
+        aug_list=config['AUGMENT_TRAIN']
     )
 
     dataset_test = ITOP(
@@ -90,8 +88,8 @@ def load_data(config):
         num_points=config['num_points'],
         train=False,
         use_valid_only=config['use_valid_only'],
+        aug_list=config['AUGMENT_TEST']
     )
-    
     data_loader = torch.utils.data.DataLoader(dataset, batch_size=config['batch_size'], shuffle=True, num_workers=config['workers'])
     data_loader_test = torch.utils.data.DataLoader(dataset_test, batch_size=config['batch_size'], num_workers=config['workers'])
     return data_loader, data_loader_test, dataset.num_classes
@@ -102,8 +100,6 @@ def create_criterion(config, data_loader, num_classes, device):
 
     if loss_type == 'mje':
         return metrics.MJE()
-    elif loss_type == 'smooth_l1':
-        return nn.SmoothL1Loss()
     elif loss_type == 'l1':
         return nn.L1Loss()
     elif loss_type == 'mse':
@@ -116,6 +112,8 @@ def create_criterion(config, data_loader, num_classes, device):
         return nn.CrossEntropyLoss(weight=class_weights_tensor)
     else:
         raise ValueError("Invalid loss type. Supported types: 'std_cross_entropy', 'weighted_cross_entropy', 'focal'.")
+
+
 
 
 def create_optimizer_and_scheduler(config, model, data_loader):

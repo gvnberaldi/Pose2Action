@@ -9,10 +9,10 @@ class NoiseAug(Augmentation):
     """
 
     def __init__(self, 
-                 p_prob = 1.0,
-                 p_stddev = 0.005,
-                 p_clip = None, 
-                 p_apply_extra_tensors=[],
+                 p_prob=1.0,
+                 p_stddev=0.005,
+                 p_clip=None,
+                 apply_on_gt=True,
                  **kwargs):
         """Constructor.
 
@@ -29,12 +29,11 @@ class NoiseAug(Augmentation):
         self.clip_ = p_clip
 
         # Super class init.
-        super(NoiseAug, self).__init__(p_prob, p_apply_extra_tensors)
-
+        super(NoiseAug, self).__init__(p_prob, apply_on_gt)
 
     def __compute_augmentation__(self,
                                  p_tensor,
-                                 p_extra_tensors = []):
+                                 p_gt_tensor=None):
         """Abstract method to implement the augmentation.
 
         Args:
@@ -43,7 +42,7 @@ class NoiseAug(Augmentation):
         Return:
             aug_tensor (tensor): Augmented tensor.
             params (tuple): Parameters selected for the augmentation.
-            p_extra_tensors (list): List of extra tensors.
+            p_gt_tensor (tensor): Ground Truth Tensor.
         """
         device = p_tensor.device
         cur_noise = torch.randn(
@@ -52,13 +51,10 @@ class NoiseAug(Augmentation):
             cur_noise = torch.clip(cur_noise, min=-self.clip_, max=self.clip_)
         aug_tensor = p_tensor + cur_noise 
 
-        # Extra tensors.
-        new_extra_tensors = []
-        for cur_iter, cur_tensor in enumerate(p_extra_tensors):
-            if self.apply_extra_tensors_[cur_iter]:
-                new_extra_tensors.append(
-                    cur_tensor + cur_noise*self.stddev_)
-            else:
-                new_extra_tensors.append(cur_tensor)
+        # Apply on GT tensor.
+        if self.apply_on_gt:
+            augmented_gt_tensor = p_gt_tensor + cur_noise * self.stddev_
+        else:
+            augmented_gt_tensor = p_gt_tensor
 
-        return aug_tensor, (cur_noise,), new_extra_tensors
+        return aug_tensor, (cur_noise,), augmented_gt_tensor

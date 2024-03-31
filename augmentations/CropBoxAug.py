@@ -9,10 +9,10 @@ class CropBoxAug(Augmentation):
     """
 
     def __init__(self, 
-                 p_prob = 1.0,
-                 p_min_crop_size = 0.5,
-                 p_max_crop_size = 1.0, 
-                 p_apply_extra_tensors=[],
+                 p_prob=1.0,
+                 p_min_crop_size=0.5,
+                 p_max_crop_size=1.0,
+                 apply_on_gt=True,
                  **kwargs):
         """Constructor.
 
@@ -20,7 +20,7 @@ class CropBoxAug(Augmentation):
             p_prob (float): Probability of executing this augmentation.
             p_min_crop_size (float): Minimum crop size.
             p_max_crop_size (float): Maximum crop size.
-            p_apply_extra_tensors (list bool): List of boolean indicating
+            apply_on_gt (bool): Boolean indicating
                 if the augmentation should be used to the extra tensors.
         """
 
@@ -29,12 +29,11 @@ class CropBoxAug(Augmentation):
         self.max_crop_size_ = p_max_crop_size
 
         # Super class init.
-        super(CropBoxAug, self).__init__(p_prob, p_apply_extra_tensors)
-
+        super(CropBoxAug, self).__init__(p_prob, apply_on_gt)
 
     def __compute_augmentation__(self,
                                  p_pts,
-                                 p_extra_tensors = []):
+                                 p_gt_tensor=None):
         """Abstract method to implement the augmentation.
 
         Args:
@@ -43,7 +42,7 @@ class CropBoxAug(Augmentation):
         Return:
             aug_tensor (tensor): Augmented tensor.
             params (tuple): Parameters selected for the augmentation.
-            p_extra_tensors (list): List of extra tensors.
+            p_gt_tensor (tensor): Ground truth tensor.
         """
         device = p_pts.device
         min_pt = torch.amin(p_pts, 0)
@@ -62,20 +61,18 @@ class CropBoxAug(Augmentation):
             cur_crop_point = torch.rand(p_pts.shape[-1]).to(device)*\
                 (limits_box - min_pt) + min_pt
 
-            mask = torch.logical_and(p_pts[:,0] >= cur_crop_point[0], p_pts[:,0] <= (cur_crop_point[0] + cur_crop_size[0]))
+            mask = torch.logical_and(p_pts[:, 0] >= cur_crop_point[0], p_pts[:, 0] <= (cur_crop_point[0] + cur_crop_size[0]))
             for i in range(1, p_pts.shape[-1]):
                 mask = torch.logical_and(mask, 
-                    torch.logical_and(p_pts[:,i] >= cur_crop_point[i], p_pts[:,i] <= (cur_crop_point[i] + cur_crop_size[i])))
+                    torch.logical_and(p_pts[:, i] >= cur_crop_point[i], p_pts[:, i] <= (cur_crop_point[i] + cur_crop_size[i])))
                 
             aug_pts = p_pts[mask]
             valid_augment = aug_pts.shape[0] > 0
 
-        # Extra tensors.
-        aug_extra_tensors = []
-        for cur_iter, cur_tensor in enumerate(p_extra_tensors):
-            if self.apply_extra_tensors_[cur_iter]:
-                aug_extra_tensors.append(cur_tensor[mask])
-            else:
-                aug_extra_tensors.append(cur_tensor)
+        # Apply on GT tensor.
+        if self.apply_on_gt:
+            augmented_gt_tensor = p_gt_tensor[mask]
+        else:
+            augmented_gt_tensor = p_gt_tensor
 
-        return aug_pts, (mask, cur_crop_point, cur_crop_size), aug_extra_tensors
+        return aug_pts, (mask, cur_crop_point, cur_crop_size), augmented_gt_tensor

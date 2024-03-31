@@ -9,15 +9,15 @@ class LinearAug(Augmentation):
     """
 
     def __init__(self, 
-                 p_prob = 1.0,
-                 p_min_a = 0.9,
-                 p_max_a = 1.1,
-                 p_min_b = -0.1,
-                 p_max_b = 0.1,
-                 p_a_values = None,
-                 p_b_values = None,
-                 p_channel_independent = False, 
-                 p_apply_extra_tensors=[],
+                 p_prob=1.0,
+                 p_min_a=0.9,
+                 p_max_a=1.1,
+                 p_min_b=-0.1,
+                 p_max_b=0.1,
+                 p_a_values=None,
+                 p_b_values=None,
+                 p_channel_independent=False,
+                 apply_on_gt=True,
                  **kwargs):
         """Constructor. Augmentation y = x*a + b
 
@@ -31,7 +31,7 @@ class LinearAug(Augmentation):
             p_b_values (list of floats): List of user defined b values.
             p_channel_independent (bool): Boolean that indicates if
                 the transformation is applied independent of the channel.
-            p_apply_extra_tensors (list bool): List of boolean indicating
+            apply_on_gt (bool): Boolean indicating
                 if the augmentation should be used to the extra tensors.
         """
 
@@ -47,15 +47,15 @@ class LinearAug(Augmentation):
         self.b = None
 
         # Super class init.
-        super(LinearAug, self).__init__(p_prob, p_apply_extra_tensors)
+        super(LinearAug, self).__init__(p_prob, apply_on_gt)
 
-    def set_a_b(self,a,b):
+    def set_a_b(self, a, b):
         self.a = a
         self.b = b
 
     def __compute_augmentation__(self,
                                  p_tensor,
-                                 p_extra_tensors = []):
+                                 p_gt_tensor=None):
         """Abstract method to implement the augmentation.
 
         Args:
@@ -64,7 +64,7 @@ class LinearAug(Augmentation):
         Return:
             aug_tensor (tensor): Augmented tensor.
             params (tuple): Parameters selected for the augmentation.
-            p_extra_tensors (list): List of extra tensors.
+            p_gt_tensor (tensor): Ground Truth Tensor.
         """
         device = p_tensor.device
         if self.channel_independent_ and self.a_values_ is None:
@@ -83,13 +83,10 @@ class LinearAug(Augmentation):
         
         aug_tensor = p_tensor*cur_a.reshape((1, -1)) + cur_b.reshape((1, -1))
 
-        # Extra tensors.
-        new_extra_tensors = []
-        for cur_iter, cur_tensor in enumerate(p_extra_tensors):
-            if self.apply_extra_tensors_[cur_iter]:
-                new_extra_tensors.append(
-                    cur_tensor*cur_a.reshape((1, -1)) + cur_b.reshape((1, -1)))
-            else:
-                new_extra_tensors.append(cur_tensor)
+        # Apply on Ground Truth tensor.
+        if self.apply_on_gt:
+            augmented_gt_tensor = p_gt_tensor * cur_a.reshape((1, -1)) + cur_b.reshape((1, -1))
+        else:
+            augmented_gt_tensor = p_gt_tensor
 
-        return aug_tensor, (cur_a,cur_b), new_extra_tensors
+        return aug_tensor, (cur_a, cur_b), augmented_gt_tensor

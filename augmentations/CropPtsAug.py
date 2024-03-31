@@ -9,10 +9,10 @@ class CropPtsAug(Augmentation):
     """
 
     def __init__(self, 
-                 p_prob = 1.0,
-                 p_max_pts = 0,
-                 p_crop_ratio = 1.0, 
-                 p_apply_extra_tensors=[],
+                 p_prob=1.0,
+                 p_max_pts=0,
+                 p_crop_ratio=1.0,
+                 apply_on_gt=True,
                  **kwargs):
         """Constructor.
 
@@ -20,7 +20,7 @@ class CropPtsAug(Augmentation):
             p_prob (float): Probability of executing this augmentation.
             p_max_pts (float): Maximum number of points.
             p_crop_ratio (float): Scene crop ratio.
-            p_apply_extra_tensors (list bool): List of boolean indicating
+            apply_on_gt (bool): Boolean indicating
                 if the augmentation should be used to the extra tensors.
         """
 
@@ -29,12 +29,11 @@ class CropPtsAug(Augmentation):
         self.crop_ratio_ = p_crop_ratio
 
         # Super class init.
-        super(CropPtsAug, self).__init__(p_prob, p_apply_extra_tensors)
-
+        super(CropPtsAug, self).__init__(p_prob, apply_on_gt)
 
     def __compute_augmentation__(self,
                                  p_pts,
-                                 p_extra_tensors = []):
+                                 p_gt_tensor=None):
         """Abstract method to implement the augmentation.
 
         Args:
@@ -43,7 +42,7 @@ class CropPtsAug(Augmentation):
         Return:
             aug_tensor (tensor): Augmented tensor.
             params (tuple): Parameters selected for the augmentation.
-            p_extra_tensors (list): List of extra tensors.
+            p_gt_tensor (tensor): Ground truth tensor.
         """
         device = p_pts.device
         cur_num_pts = p_pts.shape[0]
@@ -58,12 +57,10 @@ class CropPtsAug(Augmentation):
             crop_mask[crop_idx] = False
             aug_pts = p_pts[crop_mask]
 
-        # Extra tensors.
-        aug_extra_tensors = []
-        for cur_iter, cur_tensor in enumerate(p_extra_tensors):
-            if self.apply_extra_tensors_[cur_iter]:
-                aug_extra_tensors.append(cur_tensor[crop_mask])
-            else:
-                aug_extra_tensors.append(cur_tensor)
+        # Ground Truth tensor.
+        if self.apply_on_gt:
+            augmented_gt_tensor = p_gt_tensor[crop_mask]
+        else:
+            augmented_gt_tensor = p_gt_tensor
 
-        return aug_pts, (crop_mask), aug_extra_tensors
+        return aug_pts, crop_mask, augmented_gt_tensor

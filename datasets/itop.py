@@ -7,8 +7,6 @@ import tqdm
 
 from torch.utils.data import Dataset
 
-
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(BASE_DIR)
 sys.path.append(ROOT_DIR)
@@ -16,11 +14,7 @@ sys.path.append(os.path.join(ROOT_DIR, 'visualization'))
 sys.path.append(os.path.join(ROOT_DIR, 'augmentations'))
 
 from augmentations.AugPipeline import AugPipeline
-
-
-from plot_pc_joints import create_gif
-
-
+from visualization.plot_pc_joints import create_gif
 
 class ITOP(Dataset):
     def __init__(self, root, frames_per_clip=16, frame_interval=1, num_points=2048, train=True, use_valid_only=False,
@@ -166,44 +160,21 @@ class ITOP(Dataset):
 
 if __name__ == '__main__':
 
-    DS_AUGMENTS_CFG  = [
-        {
-            "name": "CropPtsAug",
-            "p_prob": 0.0,
-            "p_max_pts": 1500,
-            "p_crop_ratio": 1,
-            "p_apply_extra_tensors": [False, False]
-        },
+    AUGMENT_TRAIN  = [
         {
             "name": "RotationAug",
             "p_prob": 0.0,
             "p_axis": 1,
-            "p_min_angle": 0.0,
+            "p_min_angle": 0,
             "p_max_angle": 6.28318530718,
-            "p_apply_extra_tensors": [True, False]
-        },
-        {
-            "name": "RotationAug",
-            "p_prob": 0.0,
-            "p_axis": 0,
-            "p_min_angle": -0.1308996939,
-            "p_max_angle": 0.1308996939,
-            "p_apply_extra_tensors": [False, False]
-        },
-        {
-            "name": "RotationAug",
-            "p_prob": 0.0,
-            "p_axis": 2,
-            "p_min_angle": -0.1308996939,
-            "p_max_angle": 0.1308996939,
-            "p_apply_extra_tensors": [False, False]
+            "p_apply_extra_tensors": True
         },
         {
             "name": "NoiseAug",
-            "p_prob": 1.0,
+            "p_prob": 0.0,
             "p_stddev": 0.01,
             "p_clip": 0.02,
-            "p_apply_extra_tensors": [False, False]
+            "p_apply_extra_tensors": False
         },
         {
             "name": "LinearAug",
@@ -213,18 +184,29 @@ if __name__ == '__main__':
             "p_min_b": 0.0,
             "p_max_b": 0.0,
             "p_channel_independent": True,
-            "p_apply_extra_tensors": [True, False]
+            "p_apply_extra_tensors": True
         },
         {
             "name": "MirrorAug",
             "p_prob": 0.0,
-            "p_mirror_prob": 0.5,
             "p_axes": [True, False, False],
-            "p_apply_extra_tensors": [True, False]
-        }
+            "p_apply_extra_tensors": True
+        },
+        {
+            "name": "MirrorAug",
+            "p_prob": 1.0,
+            "p_axes": [False, False, True],
+            "p_apply_extra_tensors": True
+        },
+        {
+            "name": "CenterAug",
+            "p_prob": 1.0,
+            "p_axes": [True, True, True],
+            "p_apply_extra_tensors": True
+        },
     ]
 
-    dataset = ITOP(root='/data/iballester/datasets/ITOP-CLEAN/SIDE', num_points=4096, frames_per_clip=1, train=False, use_valid_only=True)
+    dataset = ITOP(root='/data/iballester/datasets/ITOP-CLEAN/SIDE', num_points=4096, frames_per_clip=1, train=False, use_valid_only=True, aug_list=AUGMENT_TRAIN)
     print('len dataset: ', len(dataset))
     print(len(dataset.videos))
     print(len(dataset.labels))
@@ -232,7 +214,7 @@ if __name__ == '__main__':
     print(len(dataset.index_map))
 
     output_dir = 'visualization/gifs'
-    clip, label, frame_idx = dataset[300]
+    clip, label, frame_idx = dataset[305]
     print(clip.shape)
     
     #print(label)

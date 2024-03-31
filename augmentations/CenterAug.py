@@ -9,8 +9,9 @@ class CenterAug(Augmentation):
     """
 
     def __init__(self,
-                 p_axes = [True, True, True],
-                 p_apply_extra_tensors=[],
+                 p_prob=1.0,
+                 p_axes=[True, True, True],
+                 apply_on_gt=True,
                  **kwargs):
         """Constructor.
         """
@@ -18,12 +19,11 @@ class CenterAug(Augmentation):
         self.axes_ = p_axes
 
         # Super class init.
-        super(CenterAug, self).__init__(1.0, p_apply_extra_tensors)
-
+        super(CenterAug, self).__init__(p_prob, apply_on_gt)
 
     def __compute_augmentation__(self,
                                  p_pts,
-                                 p_extra_tensors = []):
+                                 p_gt_tensor=None):
         """Abstract method to implement the augmentation.
 
         Args:
@@ -32,24 +32,20 @@ class CenterAug(Augmentation):
         Return:
             aug_tensor (tensor): Augmented tensor.
             params (tuple): Parameters selected for the augmentation.
-            p_extra_tensors (list): List of extra tensors.
+            p_gt_tensor (tensor): Ground truth tensor.
         """
 
         # Center
         axes_mask = np.logical_not(np.array(self.axes_))
         center_pt = torch.mean(p_pts, 0)
         aug_pts = p_pts - center_pt.reshape((1, -1))
-        aug_pts[:,axes_mask] = p_pts[:,axes_mask]
+        aug_pts[:, axes_mask] = p_pts[:, axes_mask]
 
-        # Extra tensors.
-        new_extra_tensors = []
-        for cur_iter, cur_tensor in enumerate(p_extra_tensors):
-            if self.apply_extra_tensors_[cur_iter]:
-                new_tensor = cur_tensor - center_pt.reshape((1, -1))
-                new_tensor[:,axes_mask] = cur_tensor[:,axes_mask]
-                new_extra_tensors.append(new_tensor)
-            else:
-                new_extra_tensors.append(cur_tensor)
+        # Apply on GT tensor.
+        if self.apply_on_gt:
+            augmented_gt_tensor = p_gt_tensor - center_pt.reshape((1, -1))
+            augmented_gt_tensor[:,axes_mask] = p_gt_tensor[:,axes_mask]
+        else:
+            augmented_gt_tensor = p_gt_tensor
 
-
-        return aug_pts, (center_pt, axes_mask), new_extra_tensors
+        return aug_pts, (center_pt, axes_mask), augmented_gt_tensor

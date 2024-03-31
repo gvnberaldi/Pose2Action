@@ -14,7 +14,7 @@ class RotationAug(Augmentation):
                  p_min_angle= 0,
                  p_max_angle = 2*np.pi,
                  p_angle_values = None,
-                 p_apply_extra_tensors=[], 
+                 apply_on_gt=True,
                  **kwargs):
         """Constructor. 
 
@@ -24,7 +24,7 @@ class RotationAug(Augmentation):
             p_min_angle (float): Minimum rotation angle.
             p_max_angle (float): Maximum rotation angle.
             p_angle_values (list of floats): User-defined angle per epoch.
-            p_apply_extra_tensors (list bool): List of boolean indicating
+            apply_on_gt (bool): Boolean indicating
                 if the augmentation should be used to the extra tensors.
         """
 
@@ -36,7 +36,7 @@ class RotationAug(Augmentation):
         self.cur_angle = None
 
         # Super class init.
-        super(RotationAug, self).__init__(p_prob, p_apply_extra_tensors)
+        super(RotationAug, self).__init__(p_prob, apply_on_gt)
     
     def set_angle(self, angle):
 
@@ -46,10 +46,9 @@ class RotationAug(Augmentation):
         else:
             self.cur_angle = self.angle_values_[self.epoch_iter_]
 
-
     def __compute_augmentation__(self,
                                  p_pts,
-                                 p_extra_tensors = []):
+                                 p_gt_tensor=None):
         """Abstract method to implement the augmentation.
 
         Args:
@@ -58,7 +57,7 @@ class RotationAug(Augmentation):
         Return:
             aug_tensor (tensor): Augmented tensor.
             params (tuple): Parameters selected for the augmentation.
-            p_extra_tensors (list): List of extra tensors.
+            p_gt_tensor (tensor): Ground Truth tensor.
         """
 
         device = p_pts.device
@@ -80,13 +79,10 @@ class RotationAug(Augmentation):
 
         aug_pts = torch.matmul(p_pts, R)
 
-        # Extra tensors.
-        new_extra_tensors = []
-        for cur_iter, cur_tensor in enumerate(p_extra_tensors):
-            if self.apply_extra_tensors_[cur_iter]:
-                new_extra_tensors.append(
-                    torch.matmul(cur_tensor, R))
-            else:
-                new_extra_tensors.append(cur_tensor)
+        # Apply on GT tensor.
+        if self.apply_on_gt:
+            augmented_gt_tensor = torch.matmul(p_gt_tensor, R)
+        else:
+            augmented_gt_tensor = p_gt_tensor
 
-        return aug_pts, (self.axis_, self.cur_angle), new_extra_tensors
+        return aug_pts, (self.axis_, self.cur_angle), augmented_gt_tensor

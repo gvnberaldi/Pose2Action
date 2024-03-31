@@ -12,10 +12,10 @@ class ElasticDistortionAug(Augmentation):
     """
 
     def __init__(self, 
-                 p_prob = 1.0,
-                 p_granularity = [0.1],
-                 p_magnitude = [0.2],
-                 p_apply_extra_tensors=[],
+                 p_prob=1.0,
+                 p_granularity=0.1,
+                 p_magnitude=0.2,
+                 apply_on_gt=True,
                  **kwargs):
         """Constructor. Augmentation y = x*a + b
 
@@ -23,7 +23,7 @@ class ElasticDistortionAug(Augmentation):
             p_prob (float): Probability of executing this augmentation.
             p_granularity (float): Granularity.
             p_magnitude (float): Magnitude.
-            p_apply_extra_tensors (list bool): List of boolean indicating
+            apply_on_gt (bool): Boolean indicating
                 if the augmentation should be used to the extra tensors.
         """
 
@@ -32,12 +32,11 @@ class ElasticDistortionAug(Augmentation):
         self.magnitude_ = p_magnitude
 
         # Super class init.
-        super(ElasticDistortionAug, self).__init__(p_prob, p_apply_extra_tensors)
-
+        super(ElasticDistortionAug, self).__init__(p_prob, apply_on_gt)
 
     def __compute_augmentation__(self,
                                  p_tensor,
-                                 p_extra_tensors = []):
+                                 p_gt_tensor=None):
         """Abstract method to implement the augmentation.
 
         Args:
@@ -46,7 +45,7 @@ class ElasticDistortionAug(Augmentation):
         Return:
             aug_tensor (tensor): Augmented tensor.
             params (tuple): Parameters selected for the augmentation.
-            p_extra_tensors (list): List of extra tensors.
+            p_gt_tensor (tensor): Ground Truth Tensor.
         """
         device = p_tensor.device
         cur_type = p_tensor.dtype
@@ -61,7 +60,7 @@ class ElasticDistortionAug(Augmentation):
         coords_max = torch.amax(coords, 0).reshape((1, -1))
         noise_dims_full = torch.amax(coords - coords_min, 0)
         
-        for cur_granularity, cur_magnitude in zip(self.granularity_, self.magnitude_):
+        for cur_granularity, cur_magnitude in zip([self.granularity_], [self.magnitude_]):
             
             noise_dim = (noise_dims_full // cur_granularity).to(torch.int32) + 3
             noise = torch.randn(1, 3, *noise_dim).to(cur_type).to(device)
@@ -81,10 +80,10 @@ class ElasticDistortionAug(Augmentation):
             new_sample_coords[..., 2] = sample_coords[..., 0]
             sample = torch.nn.functional.grid_sample(
                 noise, new_sample_coords, align_corners=True, 
-                padding_mode='border')[0,:,:,0,0].transpose(0,1)
+                padding_mode='border')[0, :, :, 0, 0].transpose(0, 1)
 
             coords += sample * cur_magnitude
 
         aug_tensor = coords
 
-        return aug_tensor, None, p_extra_tensors
+        return aug_tensor, None, p_gt_tensor

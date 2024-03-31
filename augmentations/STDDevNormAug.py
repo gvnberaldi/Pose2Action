@@ -9,15 +9,15 @@ class STDDevNormAug(Augmentation):
     """
 
     def __init__(self,
-                 p_new_std = 1.0,
-                 p_apply_extra_tensors=[],
+                 p_new_std=1.0,
+                 apply_on_gt=True,
                  **kwargs):
         """Constructor.
 
         Args:
             p_max_aabb_ratio (float): Maximum ratio of displacement
                 wrt. the bounding box.
-            p_apply_extra_tensors (list bool): List of boolean indicating
+            apply_on_gt (bool): Boolean indicating
                 if the augmentation should be used to the extra tensors.
         """
 
@@ -25,12 +25,11 @@ class STDDevNormAug(Augmentation):
         self.stddev_ = p_new_std
 
         # Super class init.
-        super(STDDevNormAug, self).__init__(1.0, p_apply_extra_tensors)
-
+        super(STDDevNormAug, self).__init__(1.0, apply_on_gt)
 
     def __compute_augmentation__(self,
                                  p_pts,
-                                 p_extra_tensors = []):
+                                 p_gt_tensor=None):
         """Abstract method to implement the augmentation.
 
         Args:
@@ -39,18 +38,15 @@ class STDDevNormAug(Augmentation):
         Return:
             aug_tensor (tensor): Augmented tensor.
             params (tuple): Parameters selected for the augmentation.
-            p_extra_tensors (list): List of extra tensors.
+            p_gt_tensor (tensor): Ground Truth Tensor.
         """
         prev_stddev = torch.amax(torch.std(p_pts, 0))
         aug_pts = (p_pts*self.stddev_)/prev_stddev
 
-        # Extra tensors.
-        new_extra_tensors = []
-        for cur_iter, cur_tensor in enumerate(p_extra_tensors):
-            if self.apply_extra_tensors_[cur_iter]:
-                new_extra_tensors.append(
-                    (cur_tensor*self.stddev_)/prev_stddev)
-            else:
-                new_extra_tensors.append(cur_tensor)
+        # Apply on Ground Truth tensor
+        if self.apply_on_gt:
+            augmented_gt_tensor = (p_gt_tensor * self.stddev_) / prev_stddev
+        else:
+            augmented_gt_tensor = p_gt_tensor
         
-        return aug_pts, (prev_stddev, self.stddev_), new_extra_tensors
+        return aug_pts, (prev_stddev, self.stddev_), augmented_gt_tensor
