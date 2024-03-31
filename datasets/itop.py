@@ -151,8 +151,8 @@ class ITOP(Dataset):
 
         #print("clip_label.shape: ", clip_label.shape)
 
-        middle_frame_index = clip_label.shape[0] // 2  # Find the index of the middle frame
-        clip_label = clip_label[np.newaxis,middle_frame_index,:]  # Select only the middle frame from the target tensor    
+        #middle_frame_index = clip_label.shape[0] // 2  # Find the index of the middle frame
+        #clip_label = clip_label[np.newaxis,middle_frame_index,:]  # Select only the middle frame from the target tensor    
 
         #print("clip_label.shape2: ", clip_label.shape)
 
@@ -224,7 +224,7 @@ if __name__ == '__main__':
         }
     ]
 
-    dataset = ITOP(root='/data/iballester/datasets/ITOP-CLEAN/SIDE', num_points=4096, frames_per_clip=5, train=False, use_valid_only=True)
+    dataset = ITOP(root='/data/iballester/datasets/ITOP-CLEAN/SIDE', num_points=4096, frames_per_clip=4, train=False, use_valid_only=True)
     print('len dataset: ', len(dataset))
     print(len(dataset.videos))
     print(len(dataset.labels))
@@ -232,7 +232,7 @@ if __name__ == '__main__':
     print(len(dataset.index_map))
 
     output_dir = 'visualization/gifs'
-    clip, label, frame_idx = dataset[103]
+    clip, label, frame_idx = dataset[444]
     print(clip.shape)
     
     #print(label)
@@ -240,4 +240,4 @@ if __name__ == '__main__':
 
     print(dataset.num_classes)
 
-    #create_gif(clip, label, frame_idx, output_dir)
+    create_gif(clip, label, frame_idx, output_dir)
