@@ -18,13 +18,15 @@ from visualization.plot_pc_joints import create_gif
 
 class ITOP(Dataset):
     def __init__(self, root, frames_per_clip=16, frame_interval=1, num_points=2048, train=True, use_valid_only=False,
-                 aug_list=None):
+                 aug_list=None, label_frame='middle'):
         super(ITOP, self).__init__()
+
 
         self.videos = []
         self.labels = []
         self.identifiers = []
         self.index_map = []
+        self.label_frame = label_frame
         index = 0
         # LOAD DATA FROM FILES
         point_clouds_folder = ''
@@ -145,8 +147,13 @@ class ITOP(Dataset):
 
         #print("clip_label.shape: ", clip_label.shape)
 
-        middle_frame_index = clip_label.shape[0] // 2  # Find the index of the middle frame
-        clip_label = clip_label[np.newaxis,middle_frame_index,:]  # Select only the middle frame from the target tensor    
+        if self.label_frame == 'middle': 
+            middle_frame_index = clip_label.shape[0] // 2  # Find the index of the middle frame
+            clip_label = clip_label[np.newaxis,middle_frame_index,:]  # Select only the middle frame from the target tensor
+        elif self.label_frame == 'last':
+            clip_label = clip_label[np.newaxis,-1,:]
+
+            
 
         #print("clip_label.shape2: ", clip_label.shape)
 
@@ -210,7 +217,9 @@ if __name__ == '__main__':
         },
     ]
 
-    dataset = ITOP(root='/data/iballester/datasets/ITOP-CLEAN/SIDE', num_points=4096, frames_per_clip=5, train=False, use_valid_only=True, aug_list=AUGMENT_TRAIN)
+    label_frame = 'last'
+
+    dataset = ITOP(root='/data/iballester/datasets/ITOP-CLEAN/SIDE', num_points=4096, frames_per_clip=5, train=False, use_valid_only=True, aug_list=AUGMENT_TRAIN ,label_frame=label_frame)
     print('len dataset: ', len(dataset))
     print(len(dataset.videos))
     print(len(dataset.labels))
@@ -218,7 +227,7 @@ if __name__ == '__main__':
     print(len(dataset.index_map))
 
     output_dir = 'visualization/gifs'
-    clip, label, frame_idx = dataset[900]
+    clip, label, frame_idx = dataset[350]
     print(clip.shape)
     
     #print(label)
@@ -226,4 +235,4 @@ if __name__ == '__main__':
 
     print(dataset.num_classes)
 
-    create_gif(clip, label, frame_idx, output_dir, plot_lines=True)
+    create_gif(clip, label, frame_idx, output_dir, plot_lines=True, label_frame=label_frame)

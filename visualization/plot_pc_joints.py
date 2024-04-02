@@ -7,7 +7,7 @@ import os
 import const.skeleton_joints
 from const import skeleton_joints
 
-def create_gif(point_clouds, joint_coords, video_id, output_directory, plot_lines=True):
+def create_gif(point_clouds, joint_coords, video_id, output_directory, plot_lines=True, label_frame='middle'):
     video_id_tuple = tuple(video_id.flatten())
     clip_index = f"{video_id_tuple[0]:01}_{video_id_tuple[1]:05}".encode('utf-8')
     print("Name: ", clip_index)
@@ -18,6 +18,11 @@ def create_gif(point_clouds, joint_coords, video_id, output_directory, plot_line
 
     # Find the index of the central frame
     central_frame_index = len(point_clouds) // 2
+
+    if label_frame == 'last':
+        label_frame_index = len(point_clouds) - 1  # Calculate the index of the last frame
+    elif label_frame == 'middle':
+        label_frame_index = central_frame_index
 
     print(joint_coords.shape)
 
@@ -33,7 +38,7 @@ def create_gif(point_clouds, joint_coords, video_id, output_directory, plot_line
         ax.scatter(point_cloud[:, 0], -point_cloud[:, 1], point_cloud[:, 2], s=0.1, c=point_cloud[:, 2], cmap='viridis')
 
         # Overlay the joint coordinates on the scatter plot only for the central frame
-        if i == central_frame_index:
+        if i == label_frame_index:
 
             print(joint_coords.shape)
             ax.scatter(joint_coords[: ,:, 0], -joint_coords[:, :, 1], joint_coords[:, :, 2], c='r', s=20)
@@ -60,7 +65,7 @@ def create_gif(point_clouds, joint_coords, video_id, output_directory, plot_line
     gif_path = os.path.join(output_directory, str(clip_index), f'{clip_index}.gif')
     imageio.mimsave(gif_path, gif_frames, 'GIF', duration=0.2)
 
-def gif_gt_out_pc(point_clouds, joint_coords, joints_output, video_id, output_directory, plot_lines=True):
+def gif_gt_out_pc(point_clouds, joint_coords, joints_output, video_id, output_directory, plot_lines=True, label_frame='middle'):
 
     video_id_tuple = tuple(video_id.flatten())
     clip_index = f"{video_id_tuple[0]:01}_{video_id_tuple[1]:05}".encode('utf-8')
@@ -75,7 +80,15 @@ def gif_gt_out_pc(point_clouds, joint_coords, joints_output, video_id, output_di
     frames_directory = os.path.join(output_directory, str(clip_index), 'frames')
     os.makedirs(frames_directory, exist_ok=True)
     # Find the index of the central frame
+
+    
     central_frame_index = len(point_clouds) // 2
+
+    if label_frame == 'last':
+        label_frame_index = len(point_clouds) - 1  # Calculate the index of the last frame
+    elif label_frame == 'middle':
+        label_frame_index = central_frame_index
+
 
     # Loop over each point cloud
     for i, point_cloud in enumerate(point_clouds):
@@ -85,7 +98,7 @@ def gif_gt_out_pc(point_clouds, joint_coords, joints_output, video_id, output_di
         ax.scatter(point_cloud[:, 0], -point_cloud[:, 1], point_cloud[:, 2], s=0.1, c=point_cloud[:, 2], cmap='viridis')
 
         # Overlay the joint coordinates on the scatter plot only for the central frame
-        if i == central_frame_index:
+        if i == label_frame_index:
             ax.scatter(joint_coords[:,:, 0], -joint_coords[:, :, 1], joint_coords[:, :, 2], c='r', s=20)
             ax.scatter(joints_output[:,:, 0], -joints_output[:,:, 1], joints_output[:,:, 2], c='b', s=20)
             # Draw lines representing limbs

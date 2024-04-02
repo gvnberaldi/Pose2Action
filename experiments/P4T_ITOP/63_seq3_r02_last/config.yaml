@@ -1,6 +1,6 @@
 # Configurations for model training
 dataset: 'ITOP-SIDE'
-device_args: 3
+device_args: 6
 wandb_active: false
 seed: 0
 model: 'P4Transformer'
@@ -11,7 +11,7 @@ use_valid_only: true
 
 
 # input
-clip_len: 7
+clip_len: 3
 frame_interval: 1
 num_points: 4096
 
@@ -37,7 +37,7 @@ dropout2: 0.0
 
 
 # training
-batch_size: 14
+batch_size: 24
 epochs: 100
 workers: 8
 lr: 0.01
