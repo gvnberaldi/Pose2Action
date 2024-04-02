@@ -69,7 +69,6 @@ class AugPipeline:
 
         aug_clip = []
         aug_param_list = []
-        aug_gt = []
         prob = []
 
         mirror_probs = np.random.random(3)
@@ -94,6 +93,8 @@ class AugPipeline:
                 
                 cur_aug_object.set_a_b(a, b)
 
+        aug_gt_tensor = torch.from_numpy(gt[0]).to(torch.float32) if isinstance(gt[0], np.ndarray) else gt[0].to(torch.float32)
+        gt_frame_idx = len(clip) // 2
         for i, p_tensor in enumerate(clip):
             # Convert to PyTorch tensors if input is a NumPy array
             if isinstance(p_tensor, np.ndarray):
@@ -101,18 +102,18 @@ class AugPipeline:
             else:
                 cur_tensor = p_tensor.to(torch.float32)
 
-            cur_gt = gt[i]
-            cur_gt = torch.from_numpy(cur_gt).to(torch.float32) if isinstance(cur_gt, np.ndarray) else cur_gt.to(torch.float32)
-
             cur_aug_param_list = []
 
             for j, cur_aug in enumerate(self.pipeline_):
                 if prob[j] <= cur_aug.prob_:
-                    cur_tensor, cur_params, cur_gt = cur_aug.__compute_augmentation__(
-                        cur_tensor, cur_gt)
+                    cur_tensor, cur_params, out_gt_tensor = cur_aug.__compute_augmentation__(cur_tensor, aug_gt_tensor)
+
+                    # Only process gt tensor of the center clip frame
+                    if i == gt_frame_idx:
+                        aug_gt_tensor = out_gt_tensor
+
                     cur_aug_param_list.append((cur_aug.__class__.__name__, cur_params))
             aug_clip.append(cur_tensor.numpy())
             aug_param_list.append(cur_aug_param_list)
-            aug_gt.append(cur_gt)
 
-        return torch.FloatTensor(aug_clip), aug_param_list, torch.stack(aug_gt)
+        return torch.FloatTensor(aug_clip), aug_param_list, aug_gt_tensor

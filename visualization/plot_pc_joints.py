@@ -34,6 +34,8 @@ def create_gif(point_clouds, joint_coords, video_id, output_directory, plot_line
 
         # Overlay the joint coordinates on the scatter plot only for the central frame
         if i == central_frame_index:
+
+            print(joint_coords.shape)
             ax.scatter(joint_coords[: ,:, 0], -joint_coords[:, :, 1], joint_coords[:, :, 2], c='r', s=20)
             # Draw lines representing limbs
             if plot_lines:

@@ -155,18 +155,22 @@ class ITOP(Dataset):
         if self.aug_pipeline is not None:
             clip, _, clip_label = self.aug_pipeline.augment(clip, clip_label)
 
+        #Extend clip_label to be (1,15,3)
+        clip_label = clip_label.view(1, -1, 3)
+
         return clip, clip_label, np.array([tuple(map(int, s.decode('utf-8').split('_'))) for s in clip_ids])
 
 
 if __name__ == '__main__':
 
     AUGMENT_TRAIN  = [
+
         {
             "name": "RotationAug",
-            "p_prob": 0.0,
+            "p_prob": 1.0,
             "p_axis": 1,
-            "p_min_angle": 0,
-            "p_max_angle": 6.28318530718,
+            "p_min_angle": 1.57,
+            "p_max_angle": 1.57,
             "p_apply_extra_tensors": True
         },
         {
@@ -194,7 +198,7 @@ if __name__ == '__main__':
         },
         {
             "name": "MirrorAug",
-            "p_prob": 1.0,
+            "p_prob": 0.0,
             "p_axes": [False, False, True],
             "p_apply_extra_tensors": True
         },
@@ -206,7 +210,7 @@ if __name__ == '__main__':
         },
     ]
 
-    dataset = ITOP(root='/data/iballester/datasets/ITOP-CLEAN/SIDE', num_points=4096, frames_per_clip=1, train=False, use_valid_only=True, aug_list=AUGMENT_TRAIN)
+    dataset = ITOP(root='/data/iballester/datasets/ITOP-CLEAN/SIDE', num_points=4096, frames_per_clip=5, train=False, use_valid_only=True, aug_list=AUGMENT_TRAIN)
     print('len dataset: ', len(dataset))
     print(len(dataset.videos))
     print(len(dataset.labels))
@@ -214,7 +218,7 @@ if __name__ == '__main__':
     print(len(dataset.index_map))
 
     output_dir = 'visualization/gifs'
-    clip, label, frame_idx = dataset[305]
+    clip, label, frame_idx = dataset[900]
     print(clip.shape)
     
     #print(label)
