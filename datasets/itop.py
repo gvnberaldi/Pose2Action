@@ -217,9 +217,9 @@ if __name__ == '__main__':
         },
     ]
 
-    label_frame = 'last'
+    label_frame = 'middle'
 
-    dataset = ITOP(root='/data/iballester/datasets/ITOP-CLEAN/SIDE', num_points=4096, frames_per_clip=5, train=False, use_valid_only=True, aug_list=AUGMENT_TRAIN ,label_frame=label_frame)
+    dataset = ITOP(root='/data/iballester/datasets/ITOP-CLEAN/SIDE', num_points=4096, frames_per_clip=1, train=False, use_valid_only=True, aug_list=None ,label_frame=label_frame)
     print('len dataset: ', len(dataset))
     print(len(dataset.videos))
     print(len(dataset.labels))

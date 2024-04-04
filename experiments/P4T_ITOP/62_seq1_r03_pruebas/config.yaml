@@ -1,6 +1,6 @@
 # Configurations for model training
 dataset: 'ITOP-SIDE'
-device_args: 6
+device_args: 4
 wandb_active: false
 seed: 0
 model: 'P4Transformer'
@@ -11,16 +11,16 @@ use_valid_only: true
 
 
 # input
-clip_len: 3
+clip_len: 1
 frame_interval: 1
 num_points: 4096
-label_frame: 'last'
+label_frame: 'middle'
 
 #threshold
 threshold: 0.1
 
 # P4D
-radius: 0.2
+radius: 0.3
 nsamples: 32
 spatial_stride: 32
 temporal_kernel_size: 1
@@ -87,6 +87,14 @@ AUGMENT_TRAIN:
       - true
       - false
       - false
+    apply_on_gt: true
+
+  - name: MirrorAug
+    p_prob: 0.0
+    p_axes:
+      - false
+      - false
+      - true
     apply_on_gt: true
 
   - name: CenterAug

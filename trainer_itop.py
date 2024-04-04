@@ -3,7 +3,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 from scripts.scheduler import WarmupMultiStepLR
-from datasets.itop import ITOP
+from datasets.itop_p import ITOP_p
 import numpy as np
 from scripts import metrics
 import scripts.utils as utils
@@ -71,24 +71,26 @@ def evaluate(model, criterion, data_loader, device, threshold):
 
 def load_data(config):
 
-    dataset = ITOP(
+    dataset = ITOP_p(
         root=config['dataset_path'],
         frames_per_clip=config['clip_len'],
         frame_interval=config['frame_interval'],
         num_points=config['num_points'],
         train=True,
         use_valid_only=config['use_valid_only'],
-        aug_list=config['AUGMENT_TRAIN']
+        aug_list=config['AUGMENT_TRAIN'],
+        label_frame=config['label_frame']
     )
 
-    dataset_test = ITOP(
+    dataset_test = ITOP_p(
         root=config['dataset_path'],
         frames_per_clip=config['clip_len'],
         frame_interval=config['frame_interval'],
         num_points=config['num_points'],
         train=False,
         use_valid_only=config['use_valid_only'],
-        aug_list=config['AUGMENT_TEST']
+        aug_list=config['AUGMENT_TEST'],
+        label_frame=config['label_frame']
     )
     data_loader = torch.utils.data.DataLoader(dataset, batch_size=config['batch_size'], shuffle=True, num_workers=config['workers'])
     data_loader_test = torch.utils.data.DataLoader(dataset_test, batch_size=config['batch_size'], num_workers=config['workers'])
