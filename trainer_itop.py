@@ -3,7 +3,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 from scripts.scheduler import WarmupMultiStepLR
-from datasets.itop_p import ITOP_p
+from datasets.itop import ITOP
 import numpy as np
 from scripts import metrics
 import scripts.utils as utils
@@ -71,7 +71,7 @@ def evaluate(model, criterion, data_loader, device, threshold):
 
 def load_data(config):
 
-    dataset = ITOP_p(
+    dataset = ITOP(
         root=config['dataset_path'],
         frames_per_clip=config['clip_len'],
         frame_interval=config['frame_interval'],
@@ -82,7 +82,7 @@ def load_data(config):
         label_frame=config['label_frame']
     )
 
-    dataset_test = ITOP_p(
+    dataset_test = ITOP(
         root=config['dataset_path'],
         frames_per_clip=config['clip_len'],
         frame_interval=config['frame_interval'],

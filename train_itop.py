@@ -17,6 +17,8 @@ import scripts.utils as utils
 from trainer_itop import train_one_epoch, evaluate, load_data, create_criterion, create_optimizer_and_scheduler, \
     final_test
 
+from scripts.utils import count_parameters
+
 
 def main(args):
     config = load_config(args.config)
@@ -38,6 +40,8 @@ def main(args):
 
     model = model_factory.create_model(config, num_classes)
     model_without_ddp = model
+
+    print(f"Number of parameters: {count_parameters(model)}")
 
     if torch.cuda.device_count() > 1:
         print("Using", torch.cuda.device_count(), "GPUs!")
@@ -121,6 +125,6 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='P4Transformer Model Training on ITOP dataset')
-    parser.add_argument('--config', type=str, default='P4T_ITOP/63_seq3_r02_pruebas', help='Path to the YAML config file')
+    parser.add_argument('--config', type=str, default='P4T_ITOP/66_seq3_r02-smaller2', help='Path to the YAML config file')
     args = parser.parse_args()
     main(args)

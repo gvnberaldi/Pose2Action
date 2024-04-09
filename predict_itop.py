@@ -10,8 +10,10 @@ import models.model_factory as model_factory
 import scripts.utils as utils
 from scripts import metrics
 from tqdm import tqdm
+import random
 
-from visualization.plot_pc_joints import gif_gt_out_pc
+
+from visualization.plot_pc_joints import gif_gt_out_pc, clean_gif_gt_out_pc, clean_sep_gt_out_pc
 from trainer_itop import load_data, create_criterion
 
 def evaluate(model, criterion, data_loader, device, threshold):
@@ -83,11 +85,13 @@ def main(args):
 
     losses, val_clip_loss, val_map, val_pck = evaluate(model, criterion, data_loader_test, device=device, threshold=config['threshold'])
 
-    # Sort the clips by loss
-    losses.sort(key=lambda x: x[1], reverse=True)
+
+    # Shuffle the clips
+    #losses.sort(key=lambda x: x[1], reverse=False)
+    random.shuffle(losses)
 
     print(len(losses))
-    for i, (video_id, loss, clip, target, output) in enumerate(losses[100:300]):
+    for i, (video_id, loss, clip, target, output) in enumerate(losses[100:150]):
         print("loss: ", loss)
         # Remove the second dimension from clip, target, and output
         clip = np.squeeze(clip, axis=0)
@@ -98,7 +102,7 @@ def main(args):
         print(target.shape)
         print(output.shape)
 
-        gif_gt_out_pc(clip, target, output, video_id, 'visualization/gifs/63_seq3_r02-200-300worst')
+        clean_sep_gt_out_pc(clip, target, output, video_id, 'visualization/gifs/65_seq3_r02_fixed_no-1_clean_random150', label_frame='last')
 
     print(f"Validation Loss: {val_clip_loss:.4f}")
     print(f"Validation mAP: {val_map:.4f}")
@@ -106,8 +110,10 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='P4Transformer Model Training on ITOP dataset')
-    parser.add_argument('--config', type=str, default='P4T_ITOP/63_seq3_r02', help='Path to the YAML config file')
-    parser.add_argument('--model', type=str, default='experiments/P4T_ITOP/63_seq3_r02/log/best_model.pth', help='Path to the YAML config file')
+    parser.add_argument('--config', type=str, default='P4T_ITOP/65_seq3_r02_fixed_no-1', help='Path to the YAML config file')
+    parser.add_argument('--model', type=str, default='experiments/P4T_ITOP/65_seq3_r02_fixed_no-1/log/best_model.pth', help='Path to the YAML config file')
 
     args = parser.parse_args()
     main(args)
+
+   

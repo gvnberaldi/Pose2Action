@@ -24,20 +24,20 @@ joint_indices = {
     (idx1, idx, limb colour)
 """
 joint_connections = [
-    (14, 12, "black"),  # L foot -- L knee
-    (12, 10, "red"),  # L knee -- L Hip
-    (13, 11, "green"),  # R foot -- R knee
-    (11, 9, "yellow"),  # R knee -- R Hip
-    (10, 8, "blue"),  # L hip -- Torso
-    (9, 8, "magenta"),  # R hip -- Torso
-    (8, 1, "cyan"),  # Torso -- Neck
-    (1, 0, "lime"),  # Neck -- Head
-    (7, 5, "orange"),  # L Hand -- L Elbow
-    (5, 3, "gray"),  # L Elbow -- L Shoulder
-    (3, 1, "slategray"),  # L Shoulder -- Neck
-    (6, 4, "olive"),  # R Hand -- R Elbow
-    (4, 2, "gold"),  # R Elbow -- R Shoulder
-    (2, 1, "indigo"),  # R Shoulder -- Neck
+    (14, 12, "#FF69B4"),  # L foot -- L knee (bright pink)
+    (12, 10, "#FF6347"),  # L knee -- L Hip (tomato red)
+    (13, 11, "#32CD32"),  # R foot -- R knee (lime green)
+    (11, 9, "#FFD700"),   # R knee -- R Hip (gold)
+    (10, 8, "#6495ED"),   # L hip -- Torso (cornflower blue)
+    (9, 8, "#FF00FF"),    # R hip -- Torso (magenta)
+    (8, 1, "#00FFFF"),    # Torso -- Neck (cyan)
+    (1, 0, "#ADFF2F"),    # Neck -- Head (green yellow)
+    (7, 5, "#FFA500"),    # L Hand -- L Elbow (orange)
+    (5, 3, "#808080"),    # L Elbow -- L Shoulder (gray)
+    (3, 1, "#708090"),    # L Shoulder -- Neck (slate gray)
+    (6, 4, "#808000"),    # R Hand -- R Elbow (olive)
+    (4, 2, "#FFD700"),    # R Elbow -- R Shoulder (gold again, for consistency with the hip)
+    (2, 1, "#4B0082"),    # R Shoulder -- Neck (indigo)
 ]
 
 
