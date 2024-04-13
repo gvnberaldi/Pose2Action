@@ -87,11 +87,11 @@ def main(args):
 
 
     # Shuffle the clips
-    #losses.sort(key=lambda x: x[1], reverse=False)
-    random.shuffle(losses)
+    losses.sort(key=lambda x: x[1], reverse=True)
+    #random.shuffle(losses)
 
     print(len(losses))
-    for i, (video_id, loss, clip, target, output) in enumerate(losses[100:150]):
+    for i, (video_id, loss, clip, target, output) in enumerate(losses[0:20]):
         print("loss: ", loss)
         # Remove the second dimension from clip, target, and output
         clip = np.squeeze(clip, axis=0)
@@ -102,7 +102,7 @@ def main(args):
         print(target.shape)
         print(output.shape)
 
-        clean_sep_gt_out_pc(clip, target, output, video_id, 'visualization/gifs/65_seq3_r02_fixed_no-1_clean_random150', label_frame='last')
+        gif_gt_out_pc(clip, target, output, video_id, 'visualization/gifs/70_run_seq3_r02-small', label_frame='last')
 
     print(f"Validation Loss: {val_clip_loss:.4f}")
     print(f"Validation mAP: {val_map:.4f}")
@@ -110,8 +110,8 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='P4Transformer Model Training on ITOP dataset')
-    parser.add_argument('--config', type=str, default='P4T_ITOP/65_seq3_r02_fixed_no-1', help='Path to the YAML config file')
-    parser.add_argument('--model', type=str, default='experiments/P4T_ITOP/65_seq3_r02_fixed_no-1/log/best_model.pth', help='Path to the YAML config file')
+    parser.add_argument('--config', type=str, default='P4T_ITOP/70_run_seq3_r02-small', help='Path to the YAML config file')
+    parser.add_argument('--model', type=str, default='experiments/P4T_ITOP/70_run_seq3_r02-small/log/best_model.pth', help='Path to the YAML config file')
 
     args = parser.parse_args()
     main(args)
