@@ -170,6 +170,15 @@ class ITOP(Dataset):
 
 if __name__ == '__main__':
 
+    AUGMENT_TEST  = [
+        {
+            "name": "CenterAug",
+            "p_prob": 1.0,
+            "p_axes": [True, True, True],
+            "p_apply_extra_tensors": True
+        }]
+
+
     AUGMENT_TRAIN  = [
 
         {
@@ -219,7 +228,7 @@ if __name__ == '__main__':
 
     label_frame = 'middle'
 
-    dataset = ITOP(root='/data/iballester/datasets/ITOP-CLEAN/SIDE', num_points=4096, frames_per_clip=1, train=False, use_valid_only=True, aug_list=None ,label_frame=label_frame)
+    dataset = ITOP(root='/data/iballester/datasets/ITOP-CLEAN/SIDE', num_points=4096, frames_per_clip=1, train=False, use_valid_only=False, aug_list=AUGMENT_TEST ,label_frame=label_frame)
     print('len dataset: ', len(dataset))
     print(len(dataset.videos))
     print(len(dataset.labels))
@@ -227,7 +236,7 @@ if __name__ == '__main__':
     print(len(dataset.index_map))
 
     output_dir = 'visualization/gifs'
-    clip, label, frame_idx = dataset[350]
+    clip, label, frame_idx = dataset[3013]
     print(clip.shape)
     
     #print(label)

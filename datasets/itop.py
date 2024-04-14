@@ -62,11 +62,17 @@ class ITOP(Dataset):
             # Iterate over the joints_dict
             for id, (joint, is_valid) in joints_dict.items():
                 # Check if the joint is valid and the identifier is greater than or equal to frames_per_clip
-                if is_valid and int(id[-5:]) >= frames_per_clip:
-                    # Get the current frame and the previous frames_per_clip frames
-                    frames = [point_clouds_dict.get(id[:3] + str(int(id[-5:]) - frames_per_clip + 1 + i).zfill(5), None) for i in range(frames_per_clip)]
-                    # Add the joint and its corresponding frames to the valid_joints_dict
-                    self.valid_joints_dict[id] = (joint, frames)
+                if use_valid_only:
+                    if is_valid and int(id[-5:]) >= frames_per_clip-1:
+                        # Get the current frame and the previous frames_per_clip frames
+                        frames = [point_clouds_dict.get(id[:3] + str(int(id[-5:]) - frames_per_clip + 1 + i).zfill(5), None) for i in range(frames_per_clip)]
+                        # Add the joint and its corresponding frames to the valid_joints_dict
+                        self.valid_joints_dict[id] = (joint, frames)
+                else: 
+                    if int(id[-5:]) >= frames_per_clip-1:
+                        frames = [point_clouds_dict.get(id[:3] + str(int(id[-5:]) - frames_per_clip + 1 + i).zfill(5), None) for i in range(frames_per_clip)]
+                        self.valid_joints_dict[id] = (joint, frames)
+
 
             #Create a list of valid identifiers
             self.valid_identifiers = sorted(self.valid_joints_dict.keys())
@@ -134,7 +140,22 @@ class ITOP(Dataset):
 
 if __name__ == '__main__':
 
+    AUGMENT_TEST  = [
+    {
+        "name": "CenterAug",
+        "p_prob": 1.0,
+        "p_axes": [True, True, True],
+        "apply_on_gt": True
+    }]
+
     AUGMENT_TRAIN  = [
+
+        {
+            "name": "CenterAug",
+            "p_prob": 1.0,
+            "p_axes": [True, True, True],
+            "p_apply_extra_tensors": True
+        },
 
         {
             "name": "RotationAug",
@@ -172,22 +193,16 @@ if __name__ == '__main__':
             "p_prob": 0.0,
             "p_axes": [False, False, True],
             "p_apply_extra_tensors": True
-        },
-        {
-            "name": "CenterAug",
-            "p_prob": 1.0,
-            "p_axes": [True, True, True],
-            "p_apply_extra_tensors": True
-        },
+        }
     ]
 
     label_frame = 'last'
 
-    dataset_p = ITOP(root='/data/iballester/datasets/ITOP-CLEAN/SIDE', num_points=4096, frames_per_clip=3, train=False, use_valid_only=False, aug_list=None ,label_frame=label_frame)
+    dataset_p = ITOP(root='/data/iballester/datasets/ITOP-CLEAN/SIDE', num_points=4096, frames_per_clip=5, train=False, use_valid_only=False, aug_list=AUGMENT_TEST, label_frame=label_frame)
 
-    clip, label, frame_idx = dataset_p[13]
+    clip, label, frame_idx = dataset_p[3003]
 
     output_dir = 'visualization/gifs'
 
-    clean_create_gif(clip, label, frame_idx, output_dir, plot_lines=True, label_frame=label_frame)
+    create_gif(clip, label, frame_idx, output_dir, plot_lines=True, label_frame=label_frame)
     
