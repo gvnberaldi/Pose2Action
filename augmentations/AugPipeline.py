@@ -81,6 +81,8 @@ class AugPipeline:
             _, cur_aug_object = cur_aug 
             if isinstance(cur_aug_object, MirrorAug):
                 cur_aug_object.set_probs(mirror_probs)
+            elif isinstance(cur_aug_object, CenterAug):
+                cur_aug_object.set_centroid(torch.mean(clip.view(-1, 3), dim=0))
             elif isinstance(cur_aug_object, RotationAug):
                 cur_aug_object.set_angle(angle)
             elif isinstance(cur_aug_object, LinearAug):
@@ -94,7 +96,7 @@ class AugPipeline:
                 cur_aug_object.set_a_b(a, b)
 
         aug_gt_tensor = torch.from_numpy(gt[0]).to(torch.float32) if isinstance(gt[0], np.ndarray) else gt[0].to(torch.float32)
-        gt_frame_idx = len(clip)-1 # Last frame is the ground truth frame
+        gt_frame_idx = len(clip)-1
         for i, p_tensor in enumerate(clip):
             # Convert to PyTorch tensors if input is a NumPy array
             if isinstance(p_tensor, np.ndarray):
@@ -108,7 +110,7 @@ class AugPipeline:
                 if prob[j] <= cur_aug.prob_:
                     cur_tensor, cur_params, out_gt_tensor = cur_aug.__compute_augmentation__(cur_tensor, aug_gt_tensor)
 
-                    # Only process gt tensor of the last clip frame
+                    # Only process gt tensor of the center clip frame
                     if i == gt_frame_idx:
                         aug_gt_tensor = out_gt_tensor
 

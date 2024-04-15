@@ -17,9 +17,13 @@ class CenterAug(Augmentation):
         """
 
         self.axes_ = p_axes
+        self.centroid = None
 
         # Super class init.
         super(CenterAug, self).__init__(p_prob, apply_on_gt)
+
+    def set_centroid(self, centroid):
+        self.centroid = centroid
 
     def __compute_augmentation__(self,
                                  p_pts,
@@ -37,7 +41,7 @@ class CenterAug(Augmentation):
 
         # Center
         axes_mask = np.logical_not(np.array(self.axes_))
-        center_pt = torch.mean(p_pts, 0)
+        center_pt = self.centroid if self.centroid is not None else torch.mean(p_pts, 0)
         aug_pts = p_pts - center_pt.reshape((1, -1))
         aug_pts[:, axes_mask] = p_pts[:, axes_mask]
 
