@@ -29,6 +29,13 @@ class TranslationAug(Augmentation):
         # Super class init.
         super(TranslationAug, self).__init__(p_prob, apply_on_gt)
 
+        self.displacement_vec = None
+
+    def set_displacement(self, displacement_vec):
+        # Method to set the displacement vector externally
+        self.displacement_vec = displacement_vec
+
+
     def __compute_augmentation__(self,
                                  p_pts,
                                  p_gt_tensor=None):
@@ -43,16 +50,15 @@ class TranslationAug(Augmentation):
             p_gt_tensor (tensor): Ground Truth tensor.
         """
         device = p_pts.device
-        cur_translation = (torch.rand(p_pts.shape[-1]).to(device)*2. - 1.)*self.max_aabb_ratio_
-        min_pt = torch.amin(p_pts, 0)
-        max_pt = torch.amax(p_pts, 0)
-        displacement_vec = (max_pt - min_pt)/2. * cur_translation
-        aug_pts = p_pts + displacement_vec.reshape((1, -1))
 
-        # Apply on ground truth tensor.
+        # Use the pre-set displacement vector
+        self.displacement_vec = self.displacement_vec.to(device)
+
+        aug_pts = p_pts + self.displacement_vec.reshape((1, -1))
+
         if self.apply_on_gt:
-            augmented_gt_tensor = p_gt_tensor + displacement_vec.reshape((1, -1))
+            augmented_gt_tensor = p_gt_tensor + self.displacement_vec.reshape((1, -1))
         else:
             augmented_gt_tensor = p_gt_tensor
 
-        return aug_pts, (displacement_vec,), augmented_gt_tensor
+        return aug_pts, (self.displacement_vec,), augmented_gt_tensor

@@ -146,7 +146,14 @@ if __name__ == '__main__':
         "p_prob": 1.0,
         "p_axes": [True, True, True],
         "apply_on_gt": True
+    },
+        {
+        "name": "TranslationAug",
+        "p_prob": 1.0,
+        "p_max_aabb_ratio": 0.2,
+        "apply_on_gt": True
     }]
+
 
     AUGMENT_TRAIN  = [
 
@@ -199,9 +206,9 @@ if __name__ == '__main__':
 
     label_frame = 'last'
 
-    dataset_p = ITOP(root='/data/iballester/datasets/ITOP-CLEAN-GT/SIDE', num_points=4096, frames_per_clip=5, train=False, use_valid_only=False, aug_list=AUGMENT_TRAIN, label_frame=label_frame)
+    dataset_p = ITOP(root='/data/iballester/datasets/ITOP-CLEAN-GT/SIDE', num_points=4096, frames_per_clip=5, train=False, use_valid_only=False, aug_list=AUGMENT_TEST, label_frame=label_frame)
 
-    clip, label, frame_idx = dataset_p[3005]
+    clip, label, frame_idx = dataset_p[3003]
 
     output_dir = 'visualization/gifs'
 

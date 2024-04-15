@@ -94,6 +94,12 @@ class AugPipeline:
                 b = torch.rand(cur_shape)
                 
                 cur_aug_object.set_a_b(a, b)
+            elif isinstance(cur_aug_object, TranslationAug):
+                cur_translation = (torch.rand(clip[0].shape[-1])*2. - 1.)*cur_aug_object.max_aabb_ratio_
+                min_pt = torch.amin(clip.view(-1, 3), dim=0)
+                max_pt = torch.amax(clip.view(-1, 3), dim=0)
+                displacement_vec = (max_pt - min_pt)/2. * cur_translation
+                cur_aug_object.set_displacement(displacement_vec)
 
         aug_gt_tensor = torch.from_numpy(gt[0]).to(torch.float32) if isinstance(gt[0], np.ndarray) else gt[0].to(torch.float32)
         gt_frame_idx = len(clip)-1
