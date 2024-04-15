@@ -63,13 +63,13 @@ class ITOP(Dataset):
             for id, (joint, is_valid) in joints_dict.items():
                 # Check if the joint is valid and the identifier is greater than or equal to frames_per_clip
                 if use_valid_only:
-                    if is_valid and int(id[-5:]) >= frames_per_clip-1:
+                    if is_valid and int(id[-5:]) >= frames_per_clip:
                         # Get the current frame and the previous frames_per_clip frames
                         frames = [point_clouds_dict.get(id[:3] + str(int(id[-5:]) - frames_per_clip + 1 + i).zfill(5), None) for i in range(frames_per_clip)]
                         # Add the joint and its corresponding frames to the valid_joints_dict
                         self.valid_joints_dict[id] = (joint, frames)
                 else: 
-                    if int(id[-5:]) >= frames_per_clip-1:
+                    if int(id[-5:]) >= frames_per_clip:
                         frames = [point_clouds_dict.get(id[:3] + str(int(id[-5:]) - frames_per_clip + 1 + i).zfill(5), None) for i in range(frames_per_clip)]
                         self.valid_joints_dict[id] = (joint, frames)
 
@@ -159,7 +159,7 @@ if __name__ == '__main__':
 
         {
             "name": "RotationAug",
-            "p_prob": 1.0,
+            "p_prob": 0.0,
             "p_axis": 1,
             "p_min_angle": 1.57,
             "p_max_angle": 1.57,
@@ -190,17 +190,18 @@ if __name__ == '__main__':
         },
         {
             "name": "MirrorAug",
-            "p_prob": 0.0,
-            "p_axes": [False, False, True],
-            "p_apply_extra_tensors": True
-        }
+            "p_prob": 1.0,
+            "p_axes": [False, True, False],
+            "apply_on_gt": True
+        },
+
     ]
 
     label_frame = 'last'
 
-    dataset_p = ITOP(root='/data/iballester/datasets/ITOP-CLEAN/SIDE', num_points=4096, frames_per_clip=5, train=False, use_valid_only=False, aug_list=AUGMENT_TEST, label_frame=label_frame)
+    dataset_p = ITOP(root='/data/iballester/datasets/ITOP-CLEAN-GT/SIDE', num_points=4096, frames_per_clip=5, train=False, use_valid_only=False, aug_list=AUGMENT_TRAIN, label_frame=label_frame)
 
-    clip, label, frame_idx = dataset_p[3003]
+    clip, label, frame_idx = dataset_p[3005]
 
     output_dir = 'visualization/gifs'
 

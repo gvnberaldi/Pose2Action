@@ -50,7 +50,7 @@ def create_gif(point_clouds, joint_coords, video_id, output_directory, plot_line
         ax.set_xlim([-1.5, 1.5])
         ax.set_ylim([-1.5, 1.5])
         ax.set_zlim([0.5, 3.5])
-        ax.view_init(elev=0, azim=90)
+        ax.view_init(elev=90, azim=90)
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
