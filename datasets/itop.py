@@ -57,6 +57,9 @@ class ITOP(Dataset):
 
         self.valid_joints_dict = {}
 
+        list_joints_items = list(joints_dict.items())
+
+
         if self.label_frame=='last':
 
             # Iterate over the joints_dict
@@ -68,22 +71,38 @@ class ITOP(Dataset):
                         frames = [point_clouds_dict.get(id[:3] + str(int(id[-5:]) - frames_per_clip + 1 + i).zfill(5), None) for i in range(frames_per_clip)]
                         # Add the joint and its corresponding frames to the valid_joints_dict
                         self.valid_joints_dict[id] = (joint, frames)
+                #TODO! remove        
                 else: 
                     if int(id[-5:]) >= frames_per_clip:
                         frames = [point_clouds_dict.get(id[:3] + str(int(id[-5:]) - frames_per_clip + 1 + i).zfill(5), None) for i in range(frames_per_clip)]
                         self.valid_joints_dict[id] = (joint, frames)
-
-
-            #Create a list of valid identifiers
-            self.valid_identifiers = sorted(self.valid_joints_dict.keys())
-            self.valid_identifiers = list(self.valid_joints_dict.keys())
-
-            if use_valid_only:
-                #self.valid_joints_count = sum(1 for joint, is_valid in joints_dict.values() if is_valid)
-                print(f"Using only frames labeled as valid. From the total of {len(point_clouds)} {type_name} frames using {len(self.valid_identifiers)} valid joints")
         
+        elif self.label_frame == 'middle':
+            for i, (id, (joint, is_valid)) in enumerate(list_joints_items):
+                next_half_frames_per_clip_id_person, next_item = list_joints_items[i+frames_per_clip//2] if i+frames_per_clip//2 < len(list_joints_items) else (None, None)
+                if use_valid_only:
+                    if is_valid and int(id[-5:]) >= frames_per_clip//2 and (next_half_frames_per_clip_id_person is None or int(id[:2]) == int(next_half_frames_per_clip_id_person[:2])):
+                        middle_frame_starting_index = int(id[-5:]) - frames_per_clip // 2
+                        frames = [point_clouds_dict.get(id[:3] + str(middle_frame_starting_index + i).zfill(5), None) for i in range(frames_per_clip)]
+                        self.valid_joints_dict[id] = (joint, frames)
+                else: 
+                    if int(id[-5:]) >= frames_per_clip//2 and (next_half_frames_per_clip_id_person is None or int(id[:2]) == int(next_half_frames_per_clip_id_person[:2])):
+                        middle_frame_starting_index = int(id[-5:]) - frames_per_clip // 2
+                        frames = [point_clouds_dict.get(id[:3] + str(middle_frame_starting_index + i).zfill(5), None) for i in range(frames_per_clip)]
+                        self.valid_joints_dict[id] = (joint, frames)
+
         else:
-            raise ValueError(f"Middle frame not implemented yet")  
+            raise ValueError(f"Not implemented yet")  
+
+        #Create a list of valid identifiers
+        self.valid_identifiers = sorted(self.valid_joints_dict.keys())
+        self.valid_identifiers = list(self.valid_joints_dict.keys())
+
+        if use_valid_only:
+            #self.valid_joints_count = sum(1 for joint, is_valid in joints_dict.values() if is_valid)
+            print(f"Using only frames labeled as valid. From the total of {len(point_clouds)} {type_name} frames using {len(self.valid_identifiers)} valid joints")
+    
+
 
         self.frames_per_clip = frames_per_clip
         self.frame_interval = frame_interval
@@ -149,8 +168,8 @@ if __name__ == '__main__':
     },
         {
         "name": "TranslationAug",
-        "p_prob": 1.0,
-        "p_max_aabb_ratio": 0.2,
+        "p_prob": 0.0,
+        "p_max_aabb_ratio": 2.0,
         "apply_on_gt": True
     }]
 
@@ -204,11 +223,11 @@ if __name__ == '__main__':
 
     ]
 
-    label_frame = 'last'
+    label_frame = 'middle'
 
     dataset_p = ITOP(root='/data/iballester/datasets/ITOP-CLEAN-GT/SIDE', num_points=4096, frames_per_clip=5, train=False, use_valid_only=False, aug_list=AUGMENT_TEST, label_frame=label_frame)
 
-    clip, label, frame_idx = dataset_p[3003]
+    clip, label, frame_idx = dataset_p[3001]
 
     output_dir = 'visualization/gifs'
 

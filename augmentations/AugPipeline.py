@@ -54,7 +54,7 @@ class AugPipeline:
         for cur_aug in self.pipeline_:
             cur_aug.increase_epoch_counter()
 
-    def augment(self, clip, gt):
+    def augment(self, clip, gt, label_frame='last'):
         """Method to augment a tensor.
 
         Args:
@@ -74,6 +74,12 @@ class AugPipeline:
         mirror_probs = np.random.random(3)
 
         angle = torch.rand(1).item()
+
+                
+        if label_frame == 'last':
+            gt_frame_idx = len(clip)-1
+        elif label_frame == 'middle':
+            gt_frame_idx = len(clip)//2
 
         for cur_aug in enumerate(self.pipeline_):
             prob.append(torch.rand(1).item())
@@ -102,7 +108,6 @@ class AugPipeline:
                 cur_aug_object.set_displacement(displacement_vec)
 
         aug_gt_tensor = torch.from_numpy(gt[0]).to(torch.float32) if isinstance(gt[0], np.ndarray) else gt[0].to(torch.float32)
-        gt_frame_idx = len(clip)-1
         for i, p_tensor in enumerate(clip):
             # Convert to PyTorch tensors if input is a NumPy array
             if isinstance(p_tensor, np.ndarray):
