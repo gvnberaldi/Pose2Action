@@ -76,24 +76,23 @@ class ITOP(Dataset):
                     if int(id[-5:]) >= frames_per_clip:
                         frames = [point_clouds_dict.get(id[:3] + str(int(id[-5:]) - frames_per_clip + 1 + i).zfill(5), None) for i in range(frames_per_clip)]
                         self.valid_joints_dict[id] = (joint, frames)
-        
         elif self.label_frame == 'middle':
             for i, (id, (joint, is_valid)) in enumerate(list_joints_items):
-                next_half_frames_per_clip_id_person, next_item = list_joints_items[i+frames_per_clip//2] if i+frames_per_clip//2 < len(list_joints_items) else (None, None)
+                next_half_frames_per_clip_id_person, next_item = (list_joints_items[i+frames_per_clip//2] if i+frames_per_clip//2 < len(list_joints_items) else (None, None))
+                if next_half_frames_per_clip_id_person is None:
+                    continue
                 if use_valid_only:
-                    if is_valid and int(id[-5:]) >= frames_per_clip//2 and (next_half_frames_per_clip_id_person is None or int(id[:2]) == int(next_half_frames_per_clip_id_person[:2])):
+                    if is_valid and int(id[-5:]) >= frames_per_clip//2 and int(id[:2]) == int(next_half_frames_per_clip_id_person[:2]):
                         middle_frame_starting_index = int(id[-5:]) - frames_per_clip // 2
                         frames = [point_clouds_dict.get(id[:3] + str(middle_frame_starting_index + i).zfill(5), None) for i in range(frames_per_clip)]
                         self.valid_joints_dict[id] = (joint, frames)
                 else: 
-                    if int(id[-5:]) >= frames_per_clip//2 and (next_half_frames_per_clip_id_person is None or int(id[:2]) == int(next_half_frames_per_clip_id_person[:2])):
+                    if int(id[-5:]) >= frames_per_clip//2 and int(id[:2]) == int(next_half_frames_per_clip_id_person[:2]):
                         middle_frame_starting_index = int(id[-5:]) - frames_per_clip // 2
                         frames = [point_clouds_dict.get(id[:3] + str(middle_frame_starting_index + i).zfill(5), None) for i in range(frames_per_clip)]
                         self.valid_joints_dict[id] = (joint, frames)
-
         else:
             raise ValueError(f"Not implemented yet")  
-
         #Create a list of valid identifiers
         self.valid_identifiers = sorted(self.valid_joints_dict.keys())
         self.valid_identifiers = list(self.valid_joints_dict.keys())
