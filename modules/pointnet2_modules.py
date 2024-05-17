@@ -4,7 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 ''' Pointnet2 layers.
-Modified based on: https://github.com/erikwijmans/Pointnet2_PyTorch
+Modified based on: https://github.com/erikwijmans/Pointnet2_PyTorch and https://github.com/hehefan/P4Transformer/ 
 Extended with the following:
 1. Uniform sampling in each local region (sample_uniformly)
 2. Return sampled points indices to support votenet.

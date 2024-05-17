@@ -4,231 +4,122 @@ import numpy as np
 import h5py
 import torch
 import tqdm
-
+from pathlib import Path
 from torch.utils.data import Dataset
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-ROOT_DIR = os.path.dirname(BASE_DIR)
-sys.path.append(ROOT_DIR)
-sys.path.append(os.path.join(ROOT_DIR, 'visualization'))
-sys.path.append(os.path.join(ROOT_DIR, 'augmentations'))
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 from augmentations.AugPipeline import AugPipeline
-from visualization.plot_pc_joints import create_gif, clean_create_gif
 
 class ITOP(Dataset):
     def __init__(self, root, frames_per_clip=16, frame_interval=1, num_points=2048, train=True, use_valid_only=False,
                  aug_list=None, label_frame='middle'):
         super(ITOP, self).__init__()
 
-
-
-        self.label_frame = label_frame
-        # LOAD DATA FROM FILES
-        point_clouds_folder = ''
-        labels_file = ''
-
-        if train:
-            point_clouds_folder = os.path.join(root, "train")
-            labels_file = "train_labels.h5"
-        if not train:
-            point_clouds_folder = os.path.join(root, "test")
-            labels_file = "test_labels.h5"
-
-        labels_file = h5py.File(os.path.join(root, labels_file), 'r')
-
-        identifiers = labels_file['id'][:]
-        joints = labels_file['real_world_coordinates'][:]
-        is_valid_flags = labels_file['is_valid'][:]
-
-        labels_file.close()
-
-        point_cloud_names = sorted(os.listdir(point_clouds_folder), key=lambda x: int(x.split('.')[0]))
-        point_clouds = []
-
-
-        type_name = "train" if train else "test"
-        for pc_name in tqdm.tqdm(point_cloud_names, f"Loading {type_name} point clouds"):
-            point_clouds.append(np.load(os.path.join(point_clouds_folder, pc_name))['arr_0'])
-
-        point_clouds_dict = {id.decode('utf-8'): point_clouds[i] for i, id in enumerate(identifiers)}
-        joints_dict = {id.decode('utf-8'): (joints[i], is_valid_flags[i]) for i, id in enumerate(identifiers)}
-
-        self.valid_joints_dict = {}
-
-        list_joints_items = list(joints_dict.items())
-
-
-        if self.label_frame=='last':
-
-            # Iterate over the joints_dict
-            for id, (joint, is_valid) in joints_dict.items():
-                # Check if the joint is valid and the identifier is greater than or equal to frames_per_clip
-                if use_valid_only:
-                    if is_valid and int(id[-5:]) >= frames_per_clip:
-                        # Get the current frame and the previous frames_per_clip frames
-                        frames = [point_clouds_dict.get(id[:3] + str(int(id[-5:]) - frames_per_clip + 1 + i).zfill(5), None) for i in range(frames_per_clip)]
-                        # Add the joint and its corresponding frames to the valid_joints_dict
-                        self.valid_joints_dict[id] = (joint, frames)
-                #TODO! remove        
-                else: 
-                    if int(id[-5:]) >= frames_per_clip:
-                        frames = [point_clouds_dict.get(id[:3] + str(int(id[-5:]) - frames_per_clip + 1 + i).zfill(5), None) for i in range(frames_per_clip)]
-                        self.valid_joints_dict[id] = (joint, frames)
-        elif self.label_frame == 'middle':
-            for i, (id, (joint, is_valid)) in enumerate(list_joints_items):
-                next_half_frames_per_clip_id_person, next_item = (list_joints_items[i+frames_per_clip//2] if i+frames_per_clip//2 < len(list_joints_items) else (None, None))
-                if next_half_frames_per_clip_id_person is None:
-                    continue
-                if use_valid_only:
-                    if is_valid and int(id[-5:]) >= frames_per_clip//2 and int(id[:2]) == int(next_half_frames_per_clip_id_person[:2]):
-                        middle_frame_starting_index = int(id[-5:]) - frames_per_clip // 2
-                        frames = [point_clouds_dict.get(id[:3] + str(middle_frame_starting_index + i).zfill(5), None) for i in range(frames_per_clip)]
-                        self.valid_joints_dict[id] = (joint, frames)
-                else: 
-                    if int(id[-5:]) >= frames_per_clip//2 and int(id[:2]) == int(next_half_frames_per_clip_id_person[:2]):
-                        middle_frame_starting_index = int(id[-5:]) - frames_per_clip // 2
-                        frames = [point_clouds_dict.get(id[:3] + str(middle_frame_starting_index + i).zfill(5), None) for i in range(frames_per_clip)]
-                        self.valid_joints_dict[id] = (joint, frames)
-        else:
-            raise ValueError(f"Not implemented yet")  
-        #Create a list of valid identifiers
-        self.valid_identifiers = sorted(self.valid_joints_dict.keys())
-        self.valid_identifiers = list(self.valid_joints_dict.keys())
-
-        if use_valid_only:
-            #self.valid_joints_count = sum(1 for joint, is_valid in joints_dict.values() if is_valid)
-            print(f"Using only frames labeled as valid. From the total of {len(point_clouds)} {type_name} frames using {len(self.valid_identifiers)} valid joints")
-    
-
-
+        self.label_frame = label_frame  
         self.frames_per_clip = frames_per_clip
         self.frame_interval = frame_interval
         self.num_points = num_points
         self.train = train
-        self.num_classes = 45 # 15 joints, 3D point dim
-        
-        # Create augmentation pipeline
+        self.root = root
+        self.num_coord_joints = 45 # 15 joints, 3D point dim
+
+        self._load_data(use_valid_only)
+
         if aug_list is not None:
             self.aug_pipeline = AugPipeline()
             self.aug_pipeline.create_pipeline(aug_list)
         else:
             self.aug_pipeline = None
 
+    
+    def _get_valid_joints(self, use_valid_only, joints_dict, point_clouds_dict):
+        """Cumbersome but necessary logic to create clips of only valid joints and their corresponding frames."""
+
+        valid_joints_dict = {}
+        list_joints_items = list(joints_dict.items())
+
+        # Process joints based on if we are considering only past frame(label_frame == 'last') or past and future frames (label_frame == 'middle')
+        if self.label_frame == 'last':
+            for id, (joint, is_valid) in joints_dict.items():
+
+                # If we are only using valid joints, check if joint is valid and identifier is greater than or equal to frames_per_clip (so we have enough frames to add)
+                if use_valid_only and is_valid and int(id[-5:]) >= self.frames_per_clip:
+                    frames = [point_clouds_dict.get(id[:3] + str(int(id[-5:]) - self.frames_per_clip + 1 + i).zfill(5), None) for i in range(self.frames_per_clip)]
+                    valid_joints_dict[id] = (joint, frames)
+                # If not using valid_only, consider all joints
+                elif not use_valid_only and int(id[-5:]) >= self.frames_per_clip:
+                    frames = [point_clouds_dict.get(id[:3] + str(int(id[-5:]) - self.frames_per_clip + 1 + i).zfill(5), None) for i in range(self.frames_per_clip)]
+                    valid_joints_dict[id] = (joint, frames)
+        # If we are considering past and future frames, we need to ensure that we have enough frames before and after, and that they belong to the same person (see ITOP naming convention for more details)
+        elif self.label_frame == 'middle':
+            for i, (id, (joint, is_valid)) in enumerate(list_joints_items):
+                # Get the identifier of the next frames_per_clip // 2 (i + frames_per_clip // 2 ) to make sure they belong to the same person
+                next_half_frames_per_clip_id_person, next_item = (list_joints_items[i + self.frames_per_clip // 2] if i + self.frames_per_clip // 2 < len(list_joints_items) else (None, None))
+                # If no next identifier available, we don't consider the current joint because we don't have enough frames
+                if next_half_frames_per_clip_id_person is None:
+                    continue
+                # Check that the frames belong to the same person and that we have enough frames before and after
+                if use_valid_only and is_valid and int(id[-5:]) >= self.frames_per_clip // 2 and int(id[:2]) == int(next_half_frames_per_clip_id_person[:2]):
+                    middle_frame_starting_index = int(id[-5:]) - self.frames_per_clip // 2
+                    frames = [point_clouds_dict.get(id[:3] + str(middle_frame_starting_index + i).zfill(5), None) for i in range(self.frames_per_clip)]
+                    valid_joints_dict[id] = (joint, frames)
+                # If not using valid_only, consider all joints (exceot for validity, same conditions as above)
+                elif not use_valid_only and int(id[-5:]) >= self.frames_per_clip // 2 and int(id[:2]) == int(next_half_frames_per_clip_id_person[:2]):
+                    middle_frame_starting_index = int(id[-5:]) - self.frames_per_clip // 2
+                    frames = [point_clouds_dict.get(id[:3] + str(middle_frame_starting_index + i).zfill(5), None) for i in range(self.frames_per_clip)]
+                    valid_joints_dict[id] = (joint, frames)
+        return valid_joints_dict
+
+    def _load_data(self, use_valid_only):
+
+        point_clouds_folder = os.path.join(self.root, "train" if self.train else "test")
+        labels_file = h5py.File(os.path.join(self.root, "train_labels.h5" if self.train else "test_labels.h5"), 'r')
+        identifiers = labels_file['id'][:]
+        joints = labels_file['real_world_coordinates'][:]
+        is_valid_flags = labels_file['is_valid'][:]
+        labels_file.close()
+
+        point_cloud_names = sorted(os.listdir(point_clouds_folder), key=lambda x: int(x.split('.')[0]))
+        point_clouds = []
+
+        for pc_name in tqdm.tqdm(point_cloud_names, f"Loading {'train' if self.train else 'test'} point clouds"):
+            point_clouds.append(np.load(os.path.join(point_clouds_folder, pc_name))['arr_0'])
+
+        point_clouds_dict = {id.decode('utf-8'): point_clouds[i] for i, id in enumerate(identifiers)}
+        joints_dict = {id.decode('utf-8'): (joints[i], is_valid_flags[i]) for i, id in enumerate(identifiers)}
+
+        self.valid_joints_dict = self._get_valid_joints(use_valid_only, joints_dict, point_clouds_dict)
+        self.valid_identifiers = list(self.valid_joints_dict.keys())
+
+        if use_valid_only:
+            print(f"Using only frames labeled as valid. From the total of {len(point_clouds)} {'train' if self.train else 'test'} frames using {len(self.valid_identifiers)} valid joints")
+
+
+    def _process_frame(self, p):
+        if p.shape[0] > self.num_points:
+            r = np.random.choice(p.shape[0], size=self.num_points, replace=False)
+        elif p.shape[0] < self.num_points:
+            repeat, residue = divmod(self.num_points, p.shape[0])
+            r = np.concatenate([np.arange(p.shape[0])] * repeat + [np.random.choice(p.shape[0], size=residue, replace=False)], axis=0)
+        else:
+            return p
+        return p[r, :]
     def __len__(self):
         return len(self.valid_identifiers)
     
     def __getitem__(self, idx):
-
-
         identifier = self.valid_identifiers[idx]
         joint, clip = self.valid_joints_dict.get(identifier, (None, [None] * self.frames_per_clip))
 
         if joint is None or any(frame is None for frame in clip):
             raise ValueError(f"Invalid joint or frames for identifier {identifier}")
 
-        for i, p in enumerate(clip):
-            if p.shape[0] > self.num_points:
-                r = np.random.choice(p.shape[0], size=self.num_points, replace=False)
-            elif p.shape[0] == self.num_points: # TODO: very ugly, try to make nicer
-                clip[i] = p
-                continue
-            else:
-                repeat, residue = self.num_points // p.shape[0], self.num_points % p.shape[0]
-                r = np.random.choice(p.shape[0], size=residue, replace=False)
-                r = np.concatenate([np.arange(p.shape[0]) for _ in range(repeat)] + [r], axis=0)
-            clip[i] = p[r, :]
+        clip = [self._process_frame(p) for p in clip]
 
-        
-        # Convert clip and joint to tensors
         clip = torch.FloatTensor(clip)
-        joint = torch.FloatTensor(joint)
+        joint = torch.FloatTensor(joint).view(1, -1, 3)
 
-        # Extend joint to be (1,15,3)
-        joint = joint.view(1, -1, 3)
-
-        if self.aug_pipeline is not None:
+        if self.aug_pipeline:
             clip, _, joint = self.aug_pipeline.augment(clip, joint)
 
-        # Extend joint to be (1,15,3)
         joint = joint.view(1, -1, 3)
 
         return clip, joint, np.array([tuple(map(int, identifier.split('_')))])
-
-if __name__ == '__main__':
-
-    AUGMENT_TEST  = [
-    {
-        "name": "CenterAug",
-        "p_prob": 1.0,
-        "p_axes": [True, True, True],
-        "apply_on_gt": True
-    },
-        {
-        "name": "TranslationAug",
-        "p_prob": 0.0,
-        "p_max_aabb_ratio": 2.0,
-        "apply_on_gt": True
-    }]
-
-
-    AUGMENT_TRAIN  = [
-
-        {
-            "name": "CenterAug",
-            "p_prob": 1.0,
-            "p_axes": [True, True, True],
-            "p_apply_extra_tensors": True
-        },
-
-        {
-            "name": "RotationAug",
-            "p_prob": 0.0,
-            "p_axis": 1,
-            "p_min_angle": 1.57,
-            "p_max_angle": 1.57,
-            "p_apply_extra_tensors": True
-        },
-        {
-            "name": "NoiseAug",
-            "p_prob": 0.0,
-            "p_stddev": 0.01,
-            "p_clip": 0.02,
-            "p_apply_extra_tensors": False
-        },
-        {
-            "name": "LinearAug",
-            "p_prob": 0.0,
-            "p_min_a": 0.9,
-            "p_max_a": 1.1,
-            "p_min_b": 0.0,
-            "p_max_b": 0.0,
-            "p_channel_independent": True,
-            "p_apply_extra_tensors": True
-        },
-        {
-            "name": "MirrorAug",
-            "p_prob": 0.0,
-            "p_axes": [True, False, False],
-            "p_apply_extra_tensors": True
-        },
-        {
-            "name": "MirrorAug",
-            "p_prob": 1.0,
-            "p_axes": [False, True, False],
-            "apply_on_gt": True
-        },
-
-    ]
-
-    label_frame = 'middle'
-
-    dataset_p = ITOP(root='/data/iballester/datasets/ITOP-CLEAN-GT/SIDE', num_points=4096, frames_per_clip=5, train=False, use_valid_only=False, aug_list=AUGMENT_TEST, label_frame=label_frame)
-
-    clip, label, frame_idx = dataset_p[3001]
-
-    output_dir = 'visualization/gifs'
-
-    create_gif(clip, label, frame_idx, output_dir, plot_lines=True, label_frame=label_frame)
-    

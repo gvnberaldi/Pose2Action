@@ -19,20 +19,9 @@ wandb/
 # Ignore application logs
 log_*
 
-# Ignore old pytorch
-/caa/Homes01/iballester/dev-svr/p4t-bad/modules-pytorch-1.4.0
-
 # Ignore experiments
 /experiments/**/log/
 
-# Ignore data folder
-data/
-
-.idea/
-
-/visualization/gifs/
-
-/experiments/0-predictions/
-
-/experiments/P4T_ITOP/old_stuff/
-/experiments/P4T_ITOP/pre10/
+/modules/build/
+/modules/dist/
+/modules/pointnet2.egg-info/

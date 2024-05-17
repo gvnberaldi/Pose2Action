@@ -8,6 +8,8 @@ from torch.utils.cpp_extension import BuildExtension, CUDAExtension
 import glob
 import os
 
+''' Modified based on: https://github.com/hehefan/P4Transformer/ '''
+
 _ext_src_root = "_ext_src"
 _ext_sources = glob.glob("{}/src/*.cpp".format(_ext_src_root)) + glob.glob(
     "{}/src/*.cu".format(_ext_src_root)
