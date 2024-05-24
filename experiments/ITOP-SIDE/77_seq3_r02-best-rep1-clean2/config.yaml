@@ -4,7 +4,7 @@ device_args: 6
 wandb_active: false
 seed: 1
 model: 'SPiKE'
-wandb_project: 'hpe'
+wandb_project: 'SPiKE - Fine Tuning'
 mode_train: true
 mode_val: true
 use_valid_only: true
@@ -49,7 +49,7 @@ lr_warmup_epochs: 0
 # output
 log_dir: "log"
     # resume
-resume: ''
+resume: '../best_model.pth'
 start_epoch: 0
     # losses
 loss_type: 'l1'   # choices=['std_cross_entropy', 'weighted_cross_entropy', 'focal'],

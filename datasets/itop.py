@@ -29,7 +29,6 @@ class ITOP(Dataset):
         else:
             self.aug_pipeline = None
 
-    
     def _get_valid_joints(self, use_valid_only, joints_dict, point_clouds_dict):
         """Cumbersome but necessary logic to create clips of only valid joints and their corresponding frames."""
 
@@ -92,7 +91,6 @@ class ITOP(Dataset):
         if use_valid_only:
             print(f"Using only frames labeled as valid. From the total of {len(point_clouds)} {'train' if self.train else 'test'} frames using {len(self.valid_identifiers)} valid joints")
 
-
     def _process_frame(self, p):
         if p.shape[0] > self.num_points:
             r = np.random.choice(p.shape[0], size=self.num_points, replace=False)
@@ -102,6 +100,7 @@ class ITOP(Dataset):
         else:
             return p
         return p[r, :]
+
     def __len__(self):
         return len(self.valid_identifiers)
     
