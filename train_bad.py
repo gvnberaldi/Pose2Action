@@ -10,6 +10,7 @@ import argparse
 
 from torch.utils.data import DataLoader
 
+sys.path.append(os.path.join(os.getcwd()))
 from SPiKE.datasets.bad import BAD
 from config.generate_config import load_config
 import models.model_factory as model_factory
