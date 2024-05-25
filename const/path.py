@@ -1,2 +1,4 @@
-EXPERIMENTS_PATH = '/caa/Homes01/iballester/dev-svr/spike/experiments/'
-ITOP_SIDE_PATH = '/data/iballester/datasets/ITOP-CLEAN-NEW/SIDE'
+import os.path
+
+EXPERIMENTS_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..\\experiments')
+ITOP_SIDE_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..\\datasets/ITOP-CLEAN-NEW/SIDE')

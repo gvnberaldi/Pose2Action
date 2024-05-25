@@ -24,7 +24,8 @@ def main(args):
     print("torch version: ", torch.__version__)
     os.environ["CUDA_VISIBLE_DEVICES"] = str(config['device_args'])
     print("CUDA_VISIBLE_DEVICES: ", os.environ["CUDA_VISIBLE_DEVICES"])
-    device = torch.device(0)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(device)
 
     bad_dataset = BAD(root=os.path.join(os.getcwd(), 'datasets\\bad'), labeled_frame='middle', frames_per_clip=3, num_points=4096)
     # Create DataLoader
@@ -45,8 +46,23 @@ def main(args):
     optimizer, lr_scheduler = create_optimizer_and_scheduler(config, model, bad_dataloader)
 
     if config['resume']:  # TODO: check if this
-        print(f"Loading model from {config['resume']}")
+        # Load the pre-trained state_dict
         checkpoint = torch.load(config['resume'], map_location='cpu')
+        pretrained_dict = checkpoint['model']
+        # Create a new state_dict with renamed keys
+        new_pretrained_dict = {}
+        for key, value in pretrained_dict.items():
+            new_key = key
+            if key == 'tube_embedding.conv_d.0.weight':
+                new_key = 'stem.conv_d.0.weight'
+            elif key == 'pos_embedding.weight':
+                new_key = 'pos_embed.weight'
+            elif key == 'pos_embedding.bias':
+                new_key = 'pos_embed.bias'
+            new_pretrained_dict[new_key] = value
+        checkpoint['model'] = new_pretrained_dict
+
+        print(f"Loading model from {config['resume']}")
         model_without_ddp.load_state_dict(checkpoint['model'], strict=True)
         config['start_epoch'] = checkpoint['epoch'] + 1
         lr_scheduler.load_state_dict(checkpoint['lr_scheduler'])
