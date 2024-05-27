@@ -10,7 +10,7 @@ import os
 
 ''' Modified based on: https://github.com/hehefan/P4Transformer/ '''
 
-_ext_src_root = "_ext_src"
+_ext_src_root = os.path.join(os.path.dirname(os.path.abspath(__file__)), '_ext_src')
 _ext_sources = glob.glob("{}/src/*.cpp".format(_ext_src_root)) + glob.glob(
     "{}/src/*.cu".format(_ext_src_root)
 )
