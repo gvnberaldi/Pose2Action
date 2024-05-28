@@ -49,11 +49,12 @@ lr_warmup_epochs: 0
 # output
 log_dir: "log"
     # resume
-resume: 'C:\\Users\\Utente\\Documents\\University\\Magistrale\\Secondo Anno - 2023 - 2024\\Secondo Semetre - ERASMUS TU Wien\\Thesis\\Code\\SPiKE\\experiments\\best_model.pth'
+resume: 'experiments\\best_model.pth'
 start_epoch: 0
     # losses
 loss_type: 'l1'   # choices=['std_cross_entropy', 'weighted_cross_entropy', 'focal'],
 save: True
+output_dir: 'experiments\\bad_dataset'
 
 AUGMENT_TRAIN:
   - name: CenterAug

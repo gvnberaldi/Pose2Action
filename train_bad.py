@@ -50,7 +50,7 @@ def main(args):
 
     if config['resume']:  # TODO: check if this
         # Load the pre-trained state_dict
-        checkpoint = torch.load(config['resume'], map_location='cpu')
+        checkpoint = torch.load(os.path.join(os.getcwd(), config['resume']), map_location='cpu')
         pretrained_dict = checkpoint['model']
         # Create a new state_dict with renamed keys
         new_pretrained_dict = {}
@@ -121,11 +121,13 @@ def main(args):
                 'epoch': epoch,
                 'args': config
             }
-            torch.save(checkpoint, os.path.join(config['output_dir'], 'checkpoint.pth'))
+            output_dir = os.path.join(os.getcwd(), config['output_dir'])
+            os.makedirs(output_dir, exist_ok=True)
+            torch.save(checkpoint, os.path.join(output_dir, 'checkpoint.pth'))
 
             if val_clip_loss < min_loss:
                 min_loss = val_clip_loss
-                torch.save(checkpoint, os.path.join(config['output_dir'], 'best_model.pth'))
+                torch.save(checkpoint, os.path.join(output_dir, 'best_model.pth'))
 
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
