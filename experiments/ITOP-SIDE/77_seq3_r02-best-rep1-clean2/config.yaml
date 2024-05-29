@@ -49,12 +49,12 @@ lr_warmup_epochs: 0
 # output
 log_dir: "log"
     # resume
-resume: 'experiments\\best_model.pth'
+resume: 'experiments/best_model.pth'
 start_epoch: 0
     # losses
 loss_type: 'l1'   # choices=['std_cross_entropy', 'weighted_cross_entropy', 'focal'],
 save: True
-output_dir: 'experiments\\bad_dataset'
+output_dir: 'experiments/bad_dataset'
 
 AUGMENT_TRAIN:
   - name: CenterAug
