@@ -30,7 +30,7 @@ def main(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(device)
 
-    bad_dataset = BAD(root=os.path.join(os.getcwd(), 'datasets\\bad'), labeled_frame='middle', frames_per_clip=3, num_points=4096)
+    bad_dataset = BAD(root=os.path.join(os.getcwd(), 'datasets/bad'), labeled_frame='middle', frames_per_clip=3, num_points=4096)
     # Create DataLoader
     bad_dataloader = DataLoader(bad_dataset, batch_size=24, shuffle=True)
     num_coord_joints = bad_dataset.num_coord_joints
