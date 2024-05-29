@@ -27,8 +27,19 @@ def main(args):
     print("torch version: ", torch.__version__)
     os.environ["CUDA_VISIBLE_DEVICES"] = str(config['device_args'])
     print("CUDA_VISIBLE_DEVICES: ", os.environ["CUDA_VISIBLE_DEVICES"])
+
+    # Check if CUDA is available
+    cuda_available = torch.cuda.is_available()
+    print(f"CUDA available: {cuda_available}")
+
+    if cuda_available:
+        # Get the name of the GPU
+        gpu_name = torch.cuda.get_device_name(0)
+        print(f"GPU name: {gpu_name}")
+    else:
+        print("CUDA is not available.")
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(device)
 
     bad_dataset = BAD(root=os.path.join(os.getcwd(), 'datasets/bad'), labeled_frame='middle', frames_per_clip=3, num_points=4096)
     # Create DataLoader
