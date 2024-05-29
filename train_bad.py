@@ -50,7 +50,7 @@ def main(args):
 
     if config['resume']:  # TODO: check if this
         # Load the pre-trained state_dict
-        checkpoint = torch.load(os.path.join(os.getcwd(), config['resume']), map_location='cpu')
+        checkpoint = torch.load(config['resume'], map_location='cpu')
         pretrained_dict = checkpoint['model']
         # Create a new state_dict with renamed keys
         new_pretrained_dict = {}
