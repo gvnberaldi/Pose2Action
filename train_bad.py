@@ -122,6 +122,7 @@ def main(args):
         print(f"Epoch {epoch} - Validation mAP: {val_map:.4f}")
         print(f"Epoch {epoch} - Validation PCK: {val_pck}")
 
+        print(f"Is main process: {utils.is_main_process()}")
         if config['output_dir'] and utils.is_main_process():
             print("Saving checkpoint...")
             # If the model is wrapped in DataParallel or DistributedDataParallel, unwrap it
