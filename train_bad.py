@@ -94,7 +94,7 @@ def main(args):
     min_loss = sys.maxsize
     eval_thresh = config['threshold']
 
-    for epoch in range(config['start_epoch'], config['epochs']):
+    for epoch in range(0, 30):
         print(f"Epoch number {epoch}")
         train_clip_loss, train_pck, train_map = train_one_epoch(model, criterion, optimizer, lr_scheduler, bad_dataloader,
                                                                 device, epoch, eval_thresh)
