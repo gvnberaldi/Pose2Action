@@ -54,7 +54,7 @@ start_epoch: 0
     # losses
 loss_type: 'l1'   # choices=['std_cross_entropy', 'weighted_cross_entropy', 'focal'],
 save: True
-output_dir: 'experiments/bad_dataset'
+output_dir: '/gpfs/data/fs71186/beraldi/bad_training'
 
 AUGMENT_TRAIN:
   - name: CenterAug

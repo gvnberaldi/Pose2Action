@@ -84,7 +84,7 @@ def main(args):
         optimizer.load_state_dict(checkpoint['optimizer'])
 
     wandb.login(key='e5e7b3c0c3fbc088d165766e575853c01d6cb305')
-    wandb.init(project=config['wandb_project'], entity='gvnberaldi', name=args.config)
+    wandb.init(project=config['wandb_project'], entity='gvnberaldi')
     wandb.config.update(config)
     wandb.watch_called = False
 
@@ -94,8 +94,7 @@ def main(args):
     min_loss = sys.maxsize
     eval_thresh = config['threshold']
 
-    for epoch in range(0, 30):
-        print(f"Epoch number {epoch}")
+    for epoch in range(0, 60):
         train_clip_loss, train_pck, train_map = train_one_epoch(model, criterion, optimizer, lr_scheduler, bad_dataloader,
                                                                 device, epoch, eval_thresh)
         val_clip_loss, val_pck, val_map = evaluate(model, criterion, bad_dataloader, device=device,
@@ -124,6 +123,7 @@ def main(args):
         print(f"Epoch {epoch} - Validation PCK: {val_pck}")
 
         if config['output_dir'] and utils.is_main_process():
+            print("Saving checkpoint...")
             # If the model is wrapped in DataParallel or DistributedDataParallel, unwrap it
             model_to_save = model_without_ddp.module if isinstance(model_without_ddp,
                                                                    (nn.DataParallel)) else model_without_ddp
@@ -135,11 +135,12 @@ def main(args):
                 'epoch': epoch,
                 'args': config
             }
-            output_dir = os.path.join(os.getcwd(), config['output_dir'])
+            output_dir = config['output_dir']
             os.makedirs(output_dir, exist_ok=True)
             torch.save(checkpoint, os.path.join(output_dir, 'checkpoint.pth'))
 
             if val_clip_loss < min_loss:
+                print("Saving model weights...")
                 min_loss = val_clip_loss
                 torch.save(checkpoint, os.path.join(output_dir, 'best_model.pth'))
 
