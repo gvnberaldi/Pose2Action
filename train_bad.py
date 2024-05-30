@@ -52,7 +52,7 @@ def main(args):
 
     # print(f"Number of parameters: {count_parameters(model)}")
 
-    if torch.cuda.device_count() > 1:
+    if torch.cuda.device_count() >= 1:
         print("Using", torch.cuda.device_count(), "GPUs!")
         model = nn.DataParallel(model)
     model.to(device)
@@ -95,6 +95,7 @@ def main(args):
     eval_thresh = config['threshold']
 
     for epoch in range(config['start_epoch'], config['epochs']):
+        print(f"Epoch number {epoch}")
         train_clip_loss, train_pck, train_map = train_one_epoch(model, criterion, optimizer, lr_scheduler, bad_dataloader,
                                                                 device, epoch, eval_thresh)
         val_clip_loss, val_pck, val_map = evaluate(model, criterion, bad_dataloader, device=device,
@@ -145,7 +146,6 @@ def main(args):
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
     print('Training time {}'.format(total_time_str))
-    torch.zeros(1).cuda()
 
 
 if __name__ == "__main__":
