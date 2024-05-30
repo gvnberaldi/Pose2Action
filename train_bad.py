@@ -136,8 +136,14 @@ def main(args):
                 'epoch': epoch,
                 'args': config
             }
+
             output_dir = config['output_dir']
             os.makedirs(output_dir, exist_ok=True)
+            for file in os.listdir(output_dir):
+                file_path = os.path.join(output_dir, file)
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
+
             torch.save(checkpoint, os.path.join(output_dir, 'checkpoint.pth'))
 
             if val_clip_loss < min_loss:

@@ -45,5 +45,5 @@ def load_config(config_file):
     convert_to_float(config, ['momentum', 'weight_decay'])
     check_mode_train(config)
     set_dataset_paths(config)
-    set_output_dir(config, config_file)
+    # set_output_dir(config, config_file)
     return config
