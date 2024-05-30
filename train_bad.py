@@ -26,8 +26,8 @@ def main(args):
     config = load_config(args.config)
     print("torch version: ", torch.__version__)
     print("CUDA version:", torch.version.cuda)
-    os.environ["CUDA_VISIBLE_DEVICES"] = str(config['device_args'])
-    print("CUDA_VISIBLE_DEVICES: ", os.environ["CUDA_VISIBLE_DEVICES"])
+    # os.environ["CUDA_VISIBLE_DEVICES"] = str(config['device_args'])
+    # print("CUDA_VISIBLE_DEVICES: ", os.environ["CUDA_VISIBLE_DEVICES"])
 
     # Check if CUDA is available
     cuda_available = torch.cuda.is_available()
