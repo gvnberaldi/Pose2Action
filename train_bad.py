@@ -94,6 +94,13 @@ def main(args):
     min_loss = sys.maxsize
     eval_thresh = config['threshold']
 
+    output_dir = config['output_dir']
+    os.makedirs(output_dir, exist_ok=True)
+    for file in os.listdir(output_dir):
+        file_path = os.path.join(output_dir, file)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+
     for epoch in range(0, 60):
         train_clip_loss, train_pck, train_map = train_one_epoch(model, criterion, optimizer, lr_scheduler, bad_dataloader,
                                                                 device, epoch, eval_thresh)
@@ -136,13 +143,6 @@ def main(args):
                 'epoch': epoch,
                 'args': config
             }
-
-            output_dir = config['output_dir']
-            os.makedirs(output_dir, exist_ok=True)
-            for file in os.listdir(output_dir):
-                file_path = os.path.join(output_dir, file)
-                if os.path.isfile(file_path):
-                    os.remove(file_path)
 
             torch.save(checkpoint, os.path.join(output_dir, 'checkpoint.pth'))
 
