@@ -10,7 +10,7 @@ class BAD(Dataset):
     def __init__(self, root=None, num_points=2048, train=True, frames_per_clip=16, frame_interval=1, labeled_frame='last'):
         super(BAD, self).__init__()
         self.root = root
-        if root is None :
+        if root is None:
             raise ValueError(f"Invalid root path: {root}")
         self.num_points = num_points
         self.train = train

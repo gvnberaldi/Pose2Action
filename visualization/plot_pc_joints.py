@@ -109,13 +109,17 @@ def gif_gt_out_pc(point_clouds, joint_coords, joints_output, video_id, output_di
                 _plot_skeleton(ax, joints_output)
 
         # Set the view limits and labels
-        ax.set_xlim([-0.9, 0.9])
-        ax.set_ylim([-1.5, 0.6])
-        ax.set_zlim([-0.9, 0.9])
+        ax.set_xlim([-1.2, 0.6])
+        ax.set_ylim([-2.5, 1.6])
+        ax.set_zlim([-0.8, 0.8])
         ax.view_init(elev=0, azim=-90)
+
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
+
+        # Remove the axes for a cleaner look
+        ax.axis('off')
 
         frame_path = os.path.join(frames_directory, f'frame_{i}.png')
         plt.savefig(frame_path, dpi=300)
