@@ -42,7 +42,7 @@ def main(args):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    bad_dataset = BAD(root=os.path.join(os.getcwd(), 'datasets/bad'), labeled_frame='middle', frames_per_clip=3, num_points=4096)
+    bad_dataset = BAD(root=config['dataset_path'], labeled_frame='middle', frames_per_clip=3, num_points=4096)
     # Create DataLoader
     bad_dataloader = DataLoader(bad_dataset, batch_size=24, shuffle=True)
     num_coord_joints = bad_dataset.num_coord_joints
@@ -101,7 +101,7 @@ def main(args):
         if os.path.isfile(file_path):
             os.remove(file_path)
 
-    for epoch in range(0, 60):
+    for epoch in range(int(config['start_epoch']), int(config['epochs'])):
         train_clip_loss, train_pck, train_map = train_one_epoch(model, criterion, optimizer, lr_scheduler, bad_dataloader,
                                                                 device, epoch, eval_thresh)
         val_clip_loss, val_pck, val_map = evaluate(model, criterion, bad_dataloader, device=device,
@@ -157,8 +157,8 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='SPiKE Training on ITOP dataset')
-    parser.add_argument('--config', type=str, default='ITOP-SIDE/77_seq3_r02-best-rep1-clean2',
+    parser = argparse.ArgumentParser(description='SPiKE Training on BAD dataset')
+    parser.add_argument('--config', type=str, default='BAD',
                         help='Path to the YAML config file')
     args = parser.parse_args()
     main(args)

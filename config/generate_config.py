@@ -26,6 +26,9 @@ def set_dataset_paths(config):
     if config['dataset'] == 'ITOP-SIDE':
         config['dataset_root'] = path.ITOP_SIDE_PATH
         config['dataset_path'] = path.ITOP_SIDE_PATH
+    elif config['dataset'] == 'BAD':
+        config['dataset_root'] = path.BAD_PATH
+        config['dataset_path'] = path.BAD_PATH
     else:
         raise ValueError(f"Dataset {config['dataset']} not found.")
 

@@ -1,5 +1,5 @@
 # Configurations for model training
-dataset: 'ITOP-SIDE'
+dataset: 'BAD'
 device_args: 6
 wandb_active: false
 seed: 1
@@ -49,12 +49,12 @@ lr_warmup_epochs: 0
 # output
 log_dir: "log"
     # resume
-resume: ''
+resume: '/gpfs/data/fs71186/beraldi/bad_training_checkpoint/best_model.pth'
 start_epoch: 0
     # losses
 loss_type: 'l1'   # choices=['std_cross_entropy', 'weighted_cross_entropy', 'focal'],
 save: True
-output_dir: ''
+output_dir: '/gpfs/data/fs71186/beraldi/bad_training_checkpoint'
 
 AUGMENT_TRAIN:
   - name: CenterAug
