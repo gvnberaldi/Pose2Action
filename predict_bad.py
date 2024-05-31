@@ -92,7 +92,7 @@ def main(args):
     model_without_ddp = model
     model.to(device)
 
-    criterion = create_criterion(config, bad_dataloader, num_coord_joints, device)
+    criterion = create_criterion(config)
     # optimizer, lr_scheduler = create_optimizer_and_scheduler(config, model, data_loader_test)
 
     print(f"Loading model from {config['resume']}")
