@@ -109,10 +109,10 @@ def gif_gt_out_pc(point_clouds, joint_coords, joints_output, video_id, output_di
                 _plot_skeleton(ax, joints_output)
 
         # Set the view limits and labels
-        ax.set_xlim([-0.8, 1])
-        ax.set_ylim([-1, 0.8])
+        ax.set_xlim([-0.9, 0.9])
+        ax.set_ylim([-1.5, 0.6])
         ax.set_zlim([-0.9, 0.9])
-        # ax.view_init(elev=90, azim=90)
+        ax.view_init(elev=0, azim=-90)
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
