@@ -48,11 +48,11 @@ def create_gif(point_clouds, joint_coords, video_id, output_directory, plot_line
             if plot_lines:
                 _plot_skeleton(ax, joint_coords)
 
-        # Set the view limits and labels
-        ax.set_xlim([-1.5, 1.5])
-        ax.set_ylim([-1.5, 1.5])
-        ax.set_zlim([0.5, 3.5])
-        ax.view_init(elev=90, azim=90)
+        # Adjust axis limits to make the point cloud smaller
+        ax.set_xlim([-0.8, 1])
+        ax.set_ylim([-1, 0.8])
+        ax.set_zlim([-0.9, 0.9])
+        # ax.view_init(elev=90, azim=90)
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
@@ -66,6 +66,7 @@ def create_gif(point_clouds, joint_coords, video_id, output_directory, plot_line
     # Combine the frames into a gif and save it
     gif_path = os.path.join(output_directory, str(clip_index), f'{clip_index}.gif')
     imageio.mimsave(gif_path, gif_frames, 'GIF', duration=0.2)
+
 
 def gif_gt_out_pc(point_clouds, joint_coords, joints_output, video_id, output_directory, plot_lines=True, label_frame='middle'):
 
@@ -82,7 +83,6 @@ def gif_gt_out_pc(point_clouds, joint_coords, joints_output, video_id, output_di
     frames_directory = os.path.join(output_directory, str(clip_index), 'frames')
     os.makedirs(frames_directory, exist_ok=True)
     # Find the index of the central frame
-
     
     central_frame_index = len(point_clouds) // 2
 
@@ -91,9 +91,8 @@ def gif_gt_out_pc(point_clouds, joint_coords, joints_output, video_id, output_di
     elif label_frame == 'middle':
         label_frame_index = central_frame_index
 
-
     # Loop over each point cloud
-    for i, point_cloud in enumerate(point_clouds):
+    for i, point_cloud in tqdm(enumerate(point_clouds), total=len(point_clouds), desc='Iterating over point clouds'):
         # Create a 3D scatter plot for each point cloud
         fig = plt.figure(figsize=(10, 10))
         ax = fig.add_subplot(111, projection='3d')
@@ -109,12 +108,11 @@ def gif_gt_out_pc(point_clouds, joint_coords, joints_output, video_id, output_di
                 _plot_skeleton(ax, joint_coords)
                 _plot_skeleton(ax, joints_output)
 
-
         # Set the view limits and labels
-        ax.set_xlim([-1.5, 1.5])
-        ax.set_ylim([-1.5, 1.5])
-        ax.set_zlim([0.5, 3.5])
-        ax.view_init(elev=90, azim=90)
+        ax.set_xlim([-0.8, 1])
+        ax.set_ylim([-1, 0.8])
+        ax.set_zlim([-0.9, 0.9])
+        # ax.view_init(elev=90, azim=90)
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
@@ -127,6 +125,7 @@ def gif_gt_out_pc(point_clouds, joint_coords, joints_output, video_id, output_di
 
     gif_path = os.path.join(output_directory, f'{clip_index}.gif')
     imageio.mimsave(gif_path, gif_frames, 'GIF', duration=0.2)
+
 
 def plot_skeleton(joints, plot_2d=False):
     fig = plt.figure(figsize=(10, 10))
@@ -151,6 +150,7 @@ def _plot_skeleton(ax_context, joints):
 
         ax_context.plot(x, y, z, color=colour, linewidth=4)
 
+
 def _add_3d_axis_indicator(ax):
     # Create an inset axes with a 3D plot for the axis indicator
     # Adjust the first two values to position the inset closer to the main plot
@@ -167,6 +167,7 @@ def _add_3d_axis_indicator(ax):
     axis_indicator.quiver(0, 0, 0, 1, 0, 0, length=0.5, normalize=True, color='r', arrow_length_ratio=0.1)
     axis_indicator.quiver(0, 0, 0, 0, 1, 0, length=0.5, normalize=True, color='g', arrow_length_ratio=0.1)
     axis_indicator.quiver(0, 0, 0, 0, 0, 1, length=0.5, normalize=True, color='b', arrow_length_ratio=0.1)
+
 
 def clean_create_gif(point_clouds, joint_coords, video_id, output_directory, plot_lines=True, label_frame='middle'):
     video_id_tuple = tuple(video_id.flatten())
@@ -296,6 +297,7 @@ def clean_gif_gt_out_pc(point_clouds, joint_coords, joints_output, video_id, out
     gif_path = os.path.join(output_directory, f'{clip_index}.gif')
     imageio.mimsave(gif_path, gif_frames, 'GIF', duration=0.2)
 
+
 def clean_sep_gt_out_pc(point_clouds, joint_coords, joints_output, video_id, output_directory, plot_lines=True, label_frame='middle'):
 
     video_id_tuple = tuple(video_id.flatten())
@@ -335,6 +337,7 @@ def clean_sep_gt_out_pc(point_clouds, joint_coords, joints_output, video_id, out
             ax.scatter(joints_output[:,:, 0], -joints_output[:,:, 1], joints_output[:,:, 2], c='b', s=20)
             _plot_skeleton(ax, joints_output)
         _save_frame(fig, ax, out_frames_directory, i)
+
 
 def _create_3d_scatter_plot(point_cloud):
     fig = plt.figure(figsize=(10, 10))
