@@ -22,7 +22,7 @@ def get_model_params(config, num_coord_joints):
 def create_model(config, num_coord_joints):
     """Create a model based on the config and return it."""
 
-    if 'ITOP' in config['dataset']:
+    if 'ITOP' in config['dataset'] or 'BAD' in config['dataset']:
         try:
             model_name = config.get('model')
             print(model_name)
