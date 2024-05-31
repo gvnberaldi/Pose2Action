@@ -6,6 +6,8 @@ import os
 
 import const.skeleton_joints
 from const import skeleton_joints
+from tqdm import tqdm
+
 
 def create_gif(point_clouds, joint_coords, video_id, output_directory, plot_lines=True, label_frame='middle'):
     video_id_tuple = tuple(video_id.flatten())
@@ -31,7 +33,7 @@ def create_gif(point_clouds, joint_coords, video_id, output_directory, plot_line
     os.makedirs(frames_directory, exist_ok=True)
 
     # Loop over each point cloud
-    for i, point_cloud in enumerate(point_clouds):
+    for i, point_cloud in tqdm(enumerate(point_clouds), total=len(point_clouds), desc='Iterating over point clouds'):
         # Create a 3D scatter plot for each point cloud
         fig = plt.figure(figsize=(10, 10))
         ax = fig.add_subplot(111, projection='3d')
