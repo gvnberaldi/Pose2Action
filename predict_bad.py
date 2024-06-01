@@ -17,7 +17,7 @@ from tqdm import tqdm
 import random
 
 from visualization.plot_pc_joints import gif_gt_out_pc, clean_gif_gt_out_pc, clean_sep_gt_out_pc
-from trainer_itop import load_data, create_criterion
+from trainer import load_data, create_criterion
 
 
 def evaluate(model, criterion, data_loader, device, threshold):

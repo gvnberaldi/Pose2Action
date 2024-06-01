@@ -18,7 +18,7 @@ from config.generate_config import load_config
 import models.model_factory as model_factory
 import scripts.utils as utils
 
-from trainer_itop import train_one_epoch, evaluate, load_data, create_criterion, create_optimizer_and_scheduler
+from trainer import train_one_epoch, evaluate, load_data, create_criterion, create_optimizer_and_scheduler
 from scripts.utils import count_parameters
 
 
