@@ -100,7 +100,10 @@ def main(args):
         if os.path.isfile(file_path):
             os.remove(file_path)
 
-    for epoch in range(int(config['start_epoch']), int(config['epochs'])):
+    print(f"Train batches: {len(data_loader)}")
+    print(f"Test batches: {len(data_loader_test)}")
+
+    for epoch in range(0, 30):
         train_clip_loss, train_pck, train_map = train_one_epoch(model, criterion, optimizer, lr_scheduler, data_loader,
                                                                 device, epoch, eval_thresh)
         val_clip_loss, val_pck, val_map = evaluate(model, criterion, data_loader_test, device=device,
