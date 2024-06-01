@@ -1,10 +1,17 @@
+import os
+
+import h5py
+from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 import torch
 from torch import nn
+
+from SPiKE.datasets.bad import BAD
 from scripts.scheduler import WarmupMultiStepLR
 from datasets.itop import ITOP
 import numpy as np
 from scripts import metrics
+import const.path as path
 
 
 def train_one_epoch(model, criterion, optimizer, lr_scheduler, data_loader, device, epoch, threshold):
@@ -62,30 +69,53 @@ def evaluate(model, criterion, data_loader, device, threshold):
     return total_loss, total_pck, total_map
 
 def load_data(config):
+    if config['dataset'] == 'ITOP':
+        dataset = ITOP(
+            root=config['dataset_path'],
+            frames_per_clip=config['clip_len'],
+            frame_interval=config['frame_interval'],
+            num_points=config['num_points'],
+            train=True,
+            use_valid_only=config['use_valid_only'],
+            aug_list=config['AUGMENT_TRAIN'],
+            label_frame=config['label_frame']
+        )
 
-    dataset = ITOP(
-        root=config['dataset_path'],
-        frames_per_clip=config['clip_len'],
-        frame_interval=config['frame_interval'],
-        num_points=config['num_points'],
-        train=True,
-        use_valid_only=config['use_valid_only'],
-        aug_list=config['AUGMENT_TRAIN'],
-        label_frame=config['label_frame']
-    )
+        dataset_test = ITOP(
+            root=config['dataset_path'],
+            frames_per_clip=config['clip_len'],
+            frame_interval=config['frame_interval'],
+            num_points=config['num_points'],
+            train=False,
+            use_valid_only=config['use_valid_only'],
+            aug_list=config['AUGMENT_TEST'],
+            label_frame=config['label_frame']
+        )
+        data_loader = torch.utils.data.DataLoader(dataset, batch_size=config['batch_size'], shuffle=True, num_workers=config['workers'])
+        data_loader_test = torch.utils.data.DataLoader(dataset_test, batch_size=config['batch_size'], num_workers=config['workers'])
 
-    dataset_test = ITOP(
-        root=config['dataset_path'],
-        frames_per_clip=config['clip_len'],
-        frame_interval=config['frame_interval'],
-        num_points=config['num_points'],
-        train=False,
-        use_valid_only=config['use_valid_only'],
-        aug_list=config['AUGMENT_TEST'],
-        label_frame=config['label_frame']
-    )
-    data_loader = torch.utils.data.DataLoader(dataset, batch_size=config['batch_size'], shuffle=True, num_workers=config['workers'])
-    data_loader_test = torch.utils.data.DataLoader(dataset_test, batch_size=config['batch_size'], num_workers=config['workers'])
+    elif config['dataset'] == 'BAD':
+        dataset = BAD(root=path.BAD_PATH,
+                      frames_per_clip=config['clip_len'],
+                      frame_interval=config['frame_interval'],
+                      num_points=config['num_points'],
+                      train=True,
+                      labeled_frame=config['label_frame']
+                      )
+
+        dataset_test = BAD(root=path.BAD_PATH,
+                           frames_per_clip=config['clip_len'],
+                           frame_interval=config['frame_interval'],
+                           num_points=config['num_points'],
+                           train=False,
+                           labeled_frame=config['label_frame']
+                           )
+
+        data_loader = torch.utils.data.DataLoader(dataset, batch_size=config['batch_size'], shuffle=True,
+                                                  num_workers=config['workers'])
+        data_loader_test = torch.utils.data.DataLoader(dataset_test, batch_size=config['batch_size'],
+                                                       num_workers=config['workers'])
+
     return data_loader, data_loader_test, dataset.num_coord_joints
 
 

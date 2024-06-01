@@ -40,7 +40,10 @@ class BAD(Dataset):
                     for i in range(0, self.frames_per_clip, self.frame_interval)
                 ]
             elif self.labeled_frame == 'middle':
-                half_clip = self.frames_per_clip // 2
+                if self.frames_per_clip % 2 == 0:
+                    half_clip = self.frames_per_clip // 2
+                else:
+                    half_clip = self.frames_per_clip // 2 + 1
                 if frame_number < half_clip or frame_number >= len(self.identifiers) - half_clip:
                     continue
 

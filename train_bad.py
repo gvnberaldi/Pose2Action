@@ -42,10 +42,7 @@ def main(args):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    bad_dataset = BAD(root=config['dataset_path'], labeled_frame='middle', frames_per_clip=3, num_points=4096)
-    # Create DataLoader
-    bad_dataloader = DataLoader(bad_dataset, batch_size=24, shuffle=True)
-    num_coord_joints = bad_dataset.num_coord_joints
+    data_loader, data_loader_test, num_coord_joints = load_data(config)
 
     model = model_factory.create_model(config, num_coord_joints)
     model_without_ddp = model
@@ -58,7 +55,7 @@ def main(args):
     model.to(device)
 
     criterion = create_criterion(config)
-    optimizer, lr_scheduler = create_optimizer_and_scheduler(config, model, bad_dataloader)
+    optimizer, lr_scheduler = create_optimizer_and_scheduler(config, model, data_loader)
 
     if config['resume']:  # TODO: check if this
         # Load the pre-trained state_dict
@@ -102,9 +99,9 @@ def main(args):
             os.remove(file_path)
 
     for epoch in range(int(config['start_epoch']), int(config['epochs'])):
-        train_clip_loss, train_pck, train_map = train_one_epoch(model, criterion, optimizer, lr_scheduler, bad_dataloader,
+        train_clip_loss, train_pck, train_map = train_one_epoch(model, criterion, optimizer, lr_scheduler, data_loader,
                                                                 device, epoch, eval_thresh)
-        val_clip_loss, val_pck, val_map = evaluate(model, criterion, bad_dataloader, device=device,
+        val_clip_loss, val_pck, val_map = evaluate(model, criterion, data_loader_test, device=device,
                                                    threshold=eval_thresh)
 
         data1 = [(idx, train_pck[idx]) for idx in range(len(train_pck))]
