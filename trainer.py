@@ -110,6 +110,8 @@ def load_data(config):
                            train=False,
                            labeled_frame=config['label_frame']
                            )
+        print(f"train len: {dataset.__len__()}")
+        print(f"test len: {dataset_test.__len__()}")
 
         data_loader = torch.utils.data.DataLoader(dataset, batch_size=config['batch_size'], shuffle=True,
                                                   num_workers=config['workers'])
