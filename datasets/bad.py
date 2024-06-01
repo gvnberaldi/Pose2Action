@@ -71,6 +71,10 @@ class BAD(Dataset):
         point_clouds_file.close()
         labels_file.close()
 
+        print(len(point_clouds))
+        print(len(identifiers))
+        print(len(joints))
+
         # Create a dictionary with key equal to the identifier
         # and value the tuple of the corresponding point cloud and joint
         data_dict = {ident.decode('utf-8'): (point_cloud, joint) for ident, point_cloud, joint in zip(identifiers, point_clouds, joints)}
