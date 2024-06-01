@@ -49,7 +49,7 @@ lr_warmup_epochs: 0
 # output
 log_dir: "log"
     # resume
-resume: '/gpfs/data/fs71186/beraldi/bad_training_checkpoint/best_model.pth'
+resume: '/gpfs/data/fs71186/beraldi/best_model.pth'
 start_epoch: 0
     # losses
 loss_type: 'l1'   # choices=['std_cross_entropy', 'weighted_cross_entropy', 'focal'],
