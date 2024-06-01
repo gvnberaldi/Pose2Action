@@ -81,14 +81,12 @@ def main(args):
 
     # Data loading code
     print("Loading data from", config['dataset_path'])
-    # TODO: create a test dataset and a test data loader
-    bad_dataset = BAD(root=config['dataset_path'], labeled_frame='middle', frames_per_clip=3, num_points=4096)
-    # Create DataLoader
-    bad_dataloader = DataLoader(bad_dataset, batch_size=24, shuffle=True)
-    num_coord_joints = bad_dataset.num_coord_joints
-    print("Number of unique labels (classes):", num_coord_joints)
+    data_loader, data_loader_test, num_classes = load_data(config)
+    print("Number of unique labels (classes):", num_classes)
 
-    model = model_factory.create_model(config, num_coord_joints)
+    print("Number of unique labels (classes):", num_classes)
+
+    model = model_factory.create_model(config, num_classes)
     model_without_ddp = model
     model.to(device)
 
@@ -105,7 +103,7 @@ def main(args):
     # opt_state_dict = checkpoint['optimizer']
     # optimizer.load_state_dict(opt_state_dict)
 
-    losses, val_clip_loss, val_map, val_pck = evaluate(model, criterion, bad_dataloader, device=device,
+    losses, val_clip_loss, val_map, val_pck = evaluate(model, criterion, data_loader_test, device=device,
                                                        threshold=config['threshold'])
 
     # Shuffle the clips

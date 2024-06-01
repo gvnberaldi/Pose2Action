@@ -95,7 +95,7 @@ def load_data(config):
         data_loader_test = torch.utils.data.DataLoader(dataset_test, batch_size=config['batch_size'], num_workers=config['workers'])
 
     elif config['dataset'] == 'BAD':
-        dataset = BAD(root=path.BAD_PATH,
+        dataset = BAD(root=config['dataset_path'],
                       frames_per_clip=config['clip_len'],
                       frame_interval=config['frame_interval'],
                       num_points=config['num_points'],
@@ -103,7 +103,7 @@ def load_data(config):
                       labeled_frame=config['label_frame']
                       )
 
-        dataset_test = BAD(root=path.BAD_PATH,
+        dataset_test = BAD(root=config['dataset_path'],
                            frames_per_clip=config['clip_len'],
                            frame_interval=config['frame_interval'],
                            num_points=config['num_points'],

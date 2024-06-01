@@ -42,6 +42,8 @@ def main(args):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+    # Data loading code
+    print("Loading data from", config['dataset_path'])
     data_loader, data_loader_test, num_coord_joints = load_data(config)
 
     model = model_factory.create_model(config, num_coord_joints)
