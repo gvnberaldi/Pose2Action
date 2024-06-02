@@ -66,7 +66,7 @@ class BAD(Dataset):
         labels_file = h5py.File(os.path.join(self.root, "train_labels.h5" if self.train else "test_labels.h5"), 'r')
 
         point_clouds = point_clouds_file['data'][:]
-        identifiers = labels_file['id'][:]
+        identifiers = self._normalize_ids(labels_file['id'][:])
         joints = labels_file['3d_joints_coordinates'][:]
         point_clouds_file.close()
         labels_file.close()
@@ -79,6 +79,18 @@ class BAD(Dataset):
         self.data = data_dict
         self.joint_frames_dict = self._create_joint_frames_dict()
         self.valid_identifiers = list(self.joint_frames_dict.keys())
+
+    def _normalize_ids(self, ids):
+        # Split each ID to extract the prefix and the numeric part
+        parts = [id.split('_') for id in ids]
+
+        # Generate new IDs starting from 1, keeping the original prefix
+        normalized_ids = []
+        for i, (prefix, num) in enumerate(parts, start=1):
+            new_id = f"{prefix}_{i:05d}"
+            normalized_ids.append(new_id)
+
+        return normalized_ids
 
     def _reshape_point_cloud(self, p):
         if p.shape[0] > self.num_points:
