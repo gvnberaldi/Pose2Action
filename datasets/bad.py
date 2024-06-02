@@ -73,7 +73,7 @@ class BAD(Dataset):
 
         # Create a dictionary with key equal to the identifier
         # and value the tuple of the corresponding point cloud and joint
-        data_dict = {ident.decode('utf-8'): (point_cloud, joint) for ident, point_cloud, joint in zip(identifiers, point_clouds, joints)}
+        data_dict = {ident: (point_cloud, joint) for ident, point_cloud, joint in zip(identifiers, point_clouds, joints)}
 
         self.identifiers = identifiers
         self.data = data_dict
@@ -82,6 +82,7 @@ class BAD(Dataset):
 
     def _normalize_ids(self, ids):
         # Split each ID to extract the prefix and the numeric part
+        ids = ids.decode('utf-8')
         parts = [id.split('_') for id in ids]
 
         # Generate new IDs starting from 1, keeping the original prefix
