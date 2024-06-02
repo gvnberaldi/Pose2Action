@@ -82,7 +82,7 @@ class BAD(Dataset):
 
     def _normalize_ids(self, ids):
         # Split each ID to extract the prefix and the numeric part
-        ids = ids.decode('utf-8')
+        ids = np.char.decode(ids, 'utf-8')
         parts = [id.split('_') for id in ids]
 
         # Generate new IDs starting from 1, keeping the original prefix
