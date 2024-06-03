@@ -95,10 +95,6 @@ def main(args):
 
     output_dir = config['output_dir']
     os.makedirs(output_dir, exist_ok=True)
-    for file in os.listdir(output_dir):
-        file_path = os.path.join(output_dir, file)
-        if os.path.isfile(file_path):
-            os.remove(file_path)
 
     print(f"Train batches: {len(data_loader)}")
     print(f"Test batches: {len(data_loader_test)}")
