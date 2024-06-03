@@ -13,7 +13,7 @@ use_valid_only: true
 # input
 clip_len: 3
 frame_interval: 1
-num_points: 4096
+num_points: 60208
 label_frame: 'middle'
 
 #threshold

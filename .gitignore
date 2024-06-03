@@ -26,3 +26,4 @@ log_*
 /modules/dist/
 /modules/pointnet2.egg-info/
 experiments/best_model.pth
+/datasets/BAD/
