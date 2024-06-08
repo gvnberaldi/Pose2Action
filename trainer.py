@@ -24,9 +24,6 @@ def train_one_epoch(model, criterion, optimizer, lr_scheduler, data_loader, devi
 
     for batch_idx, (clip, target, frame_indices) in enumerate(tqdm(data_loader, desc=header)):
         clip, target = clip.to(device), target.to(device)
-        print(f"Batch number: {batch_idx}")
-        print(f"Clip shape: {clip.shape}")
-        print(f"Target shape: {target.shape}")
         output = model(clip).reshape(target.shape)
         loss = criterion(output, target)
 
