@@ -23,7 +23,10 @@ def train_one_epoch(model, criterion, optimizer, lr_scheduler, data_loader, devi
     total_map = 0.0
 
     for batch_idx, (clip, target, frame_indices) in enumerate(tqdm(data_loader, desc=header)):
-        clip, target = clip.to(device), target.to(device)    
+        clip, target = clip.to(device), target.to(device)
+        print(f"Batch number: {batch_idx}")
+        print(f"Clip shape: {clip.shape}")
+        print(f"Target shape: {target.shape}")
         output = model(clip).reshape(target.shape)
         loss = criterion(output, target)
 
@@ -110,8 +113,8 @@ def load_data(config):
                            train=False,
                            labeled_frame=config['label_frame']
                            )
-        print(f"Train dataset size: {dataset.__len__()}")
-        print(f"Test dataset size: {dataset_test.__len__()}")
+        print(f"BAD train dataset size: {dataset.__len__()}")
+        print(f"BAD test dataset size: {dataset_test.__len__()}")
 
         data_loader = torch.utils.data.DataLoader(dataset, batch_size=config['batch_size'], shuffle=True,
                                                   num_workers=config['workers'])

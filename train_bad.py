@@ -23,7 +23,6 @@ from scripts.utils import count_parameters
 
 
 def main(args):
-    sys.stderr = sys.stdout
 
     config = load_config(args.config)
     print("torch version: ", torch.__version__)
