@@ -64,8 +64,7 @@ def main(args):
     print("torchvision version: ", torchvision.__version__)
     print("CUDA version:", torch.version.cuda)
     # os.environ["CUDA_VISIBLE_DEVICES"] = str(config['device_args'])
-    # print("CUDA_VISIBLE_DEVICES: ", os.environ["module list
-    # "])
+    # print("CUDA_VISIBLE_DEVICES: ", os.environ["module list"])
     device = torch.device(0)
     # Check if CUDA is available
     cuda_available = torch.cuda.is_available()
