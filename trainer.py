@@ -100,6 +100,7 @@ def load_data(config):
                       frame_interval=config['frame_interval'],
                       num_points=config['num_points'],
                       train=True,
+                      aug_list=config['AUGMENT_TRAIN'],
                       labeled_frame=config['label_frame']
                       )
 
@@ -108,6 +109,7 @@ def load_data(config):
                            frame_interval=config['frame_interval'],
                            num_points=config['num_points'],
                            train=False,
+                           aug_list=config['AUGMENT_TEST'],
                            labeled_frame=config['label_frame']
                            )
         print(f"BAD train dataset size: {dataset.__len__()}")

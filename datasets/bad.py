@@ -5,9 +5,11 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
+from SPiKE.augmentations.AugPipeline import AugPipeline
+
 
 class BAD(Dataset):
-    def __init__(self, root=None, num_points=2048, train=True, frames_per_clip=16, frame_interval=1, labeled_frame='last'):
+    def __init__(self, root=None, num_points=2048, train=True, frames_per_clip=16, frame_interval=1, aug_list=None, labeled_frame='last'):
         super(BAD, self).__init__()
         self.root = root
         if root is None:
@@ -24,6 +26,12 @@ class BAD(Dataset):
         self.joint_frames_dict = None
         self._load_data()
 
+        if aug_list is not None:
+            self.aug_pipeline = AugPipeline()
+            self.aug_pipeline.create_pipeline(aug_list)
+        else:
+            self.aug_pipeline = None
+
     def _create_joint_frames_dict(self):
         joint_frames_dict = {}
 
@@ -38,14 +46,11 @@ class BAD(Dataset):
                     for i in range(0, self.frames_per_clip, self.frame_interval)
                 ]
             elif self.labeled_frame == 'middle':
-                if self.frames_per_clip % 2 == 0:
-                    half_clip = self.frames_per_clip // 2
-                else:
-                    half_clip = self.frames_per_clip // 2 + 1
+                half_clip = self.frames_per_clip // 2
                 clip = [
                     self.data.get(f'{subject_id}_{str(frame_number + i).zfill(5)}',
                                   (None, None))[0]
-                    for i in range(-half_clip, half_clip, self.frame_interval)
+                    for i in range(-half_clip, half_clip + 1, self.frame_interval)
                 ]
 
             if clip and all(frame is not None for frame in clip):
@@ -106,6 +111,11 @@ class BAD(Dataset):
 
         clip = torch.FloatTensor(np.array(clip))
         joint = torch.FloatTensor(joint).view(1, -1, 3)
+
+        if self.aug_pipeline:
+            clip, _, joint = self.aug_pipeline.augment(clip, joint)
+
+        joint = joint.view(1, -1, 3)
 
         return clip, joint, np.array([tuple(map(int, identifier.split('_')))])
 
