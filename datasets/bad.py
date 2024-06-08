@@ -30,10 +30,8 @@ class BAD(Dataset):
         for id, (point_cloud, joint) in self.data.items():
             subject_id = id.split('_')[0]
             frame_number = int(id.split('_')[1])
-
+            clip = None
             if self.labeled_frame == 'last':
-                if frame_number < self.frames_per_clip:
-                    continue
                 clip = [
                     self.data.get(f'{subject_id}_{str(frame_number - self.frames_per_clip + i + 1).zfill(5)}',
                                   (None, None))[0]
@@ -44,17 +42,11 @@ class BAD(Dataset):
                     half_clip = self.frames_per_clip // 2
                 else:
                     half_clip = self.frames_per_clip // 2 + 1
-                if frame_number < half_clip or frame_number >= len(self.identifiers) - half_clip:
-                    continue
-
-                clip = []
-                for i in range(-half_clip, half_clip, self.frame_interval):
-                    frame_id = f'{subject_id}_{str(frame_number + i).zfill(5)}'
-                    frame = self.data.get(frame_id, (None, None))[0]
-                    if frame is None or frame_id.split('_')[0] != subject_id:
-                        clip = []
-                        break
-                    clip.append(frame)
+                clip = [
+                    self.data.get(f'{subject_id}_{str(frame_number + i).zfill(5)}',
+                                  (None, None))[0]
+                    for i in range(-half_clip, half_clip, self.frame_interval)
+                ]
 
             if clip and all(frame is not None for frame in clip):
                 joint_frames_dict[id] = (joint, clip)
@@ -66,7 +58,7 @@ class BAD(Dataset):
         labels_file = h5py.File(os.path.join(self.root, "train_labels.h5" if self.train else "test_labels.h5"), 'r')
 
         point_clouds = point_clouds_file['data'][:]
-        identifiers = self._normalize_ids(labels_file['id'][:])
+        identifiers = labels_file['id'][:]
         joints = labels_file['3d_joints_coordinates'][:]
         point_clouds_file.close()
         labels_file.close()
@@ -119,3 +111,4 @@ class BAD(Dataset):
 
     def __len__(self):
         return len(self.valid_identifiers)
+    
