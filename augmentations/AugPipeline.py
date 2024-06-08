@@ -127,6 +127,7 @@ class AugPipeline:
 
                     cur_aug_param_list.append((cur_aug.__class__.__name__, cur_params))
             aug_clip.append(cur_tensor.numpy())
+            aug_clip = np.array(aug_clip)
             aug_param_list.append(cur_aug_param_list)
 
         return torch.FloatTensor(aug_clip), aug_param_list, aug_gt_tensor
