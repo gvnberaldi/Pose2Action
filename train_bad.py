@@ -60,7 +60,8 @@ def main(args):
     criterion = create_criterion(config)
     optimizer, lr_scheduler = create_optimizer_and_scheduler(config, model, data_loader)
 
-    if config['resume']:  # TODO: check if this
+    '''
+    if config['resume']:
         # Load the pre-trained state_dict
         checkpoint = torch.load(config['resume'], map_location='cpu')
         pretrained_dict = checkpoint['model']
@@ -82,6 +83,7 @@ def main(args):
         config['start_epoch'] = checkpoint['epoch'] + 1
         lr_scheduler.load_state_dict(checkpoint['lr_scheduler'])
         optimizer.load_state_dict(checkpoint['optimizer'])
+    '''
 
     wandb.login(key='e5e7b3c0c3fbc088d165766e575853c01d6cb305')
     wandb.init(project=config['wandb_project'], entity='gvnberaldi')
@@ -94,8 +96,9 @@ def main(args):
     min_loss = sys.maxsize
     eval_thresh = config['threshold']
 
-    output_dir = config['output_dir']
-    os.makedirs(output_dir, exist_ok=True)
+    if config['output_dir']:
+        output_dir = config['output_dir']
+        os.makedirs(output_dir, exist_ok=True)
 
     print(f"Train batches: {len(data_loader)}")
     print(f"Test batches: {len(data_loader_test)}")
@@ -143,12 +146,12 @@ def main(args):
                 'args': config
             }
 
-            torch.save(checkpoint, os.path.join(output_dir, 'checkpoint.pth'))
+            torch.save(checkpoint, os.path.join(output_dir, 'from_scratch_checkpoint.pth'))
 
             if val_clip_loss < min_loss:
                 print("Saving model weights...")
                 min_loss = val_clip_loss
-                torch.save(checkpoint, os.path.join(output_dir, 'best_model.pth'))
+                torch.save(checkpoint, os.path.join(output_dir, 'from_scratch_best_model.pth'))
 
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
