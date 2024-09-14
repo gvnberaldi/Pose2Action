@@ -60,7 +60,7 @@ def main(args):
     criterion = create_criterion(config)
     optimizer, lr_scheduler = create_optimizer_and_scheduler(config, model, data_loader)
 
-    '''
+
     if config['resume']:
         # Load the pre-trained state_dict
         checkpoint = torch.load(config['resume'], map_location='cpu')
@@ -83,7 +83,7 @@ def main(args):
         config['start_epoch'] = checkpoint['epoch'] + 1
         lr_scheduler.load_state_dict(checkpoint['lr_scheduler'])
         optimizer.load_state_dict(checkpoint['optimizer'])
-    '''
+
 
     wandb.login(key='e5e7b3c0c3fbc088d165766e575853c01d6cb305')
     wandb.init(project=config['wandb_project'], entity='gvnberaldi')
