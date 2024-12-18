@@ -97,3 +97,21 @@ The system is trained and tested on the **BAD dataset**, a custom dataset of dep
    Install dependencies using:
    ```bash
    pip install -r requirements.txt
+   ```
+
+2. **Prepare Dataset**:
+   Organize depth maps and skeleton annotations in the required format.
+
+3. **Train Models**:
+   Use the provided training scripts to fine-tune SPiKE and train the RGCN model.
+
+4. **Inference**:
+   Run the system on live or pre-recorded depth maps to classify human actions.
+
+## **Future Improvements**
+
+- **Complete Dataset Annotation**: The entire dataset should be comprehensively annotated to provide a richer and more diverse set of training examples, improving the model’s ability to generalize across various actions and scenarios.
+- **Incorporation of Edge Features in Spatio-Temporal Graphs**: The spatio-temporal graph can be enriched by adding edge features, such as the lengths of the edges (i.e., distances between joints). This additional information could help improve action classification accuracy.
+- **Potential Integration of Symbolic Reasoning**: Incorporate symbolic reasoning to create a **Neurosymbolic AI system**, enhancing the model’s ability to understand contextual information and make more informed decisions.
+- **Answer Set Programming (ASP) for Safety Rules**: Use ASP to model safety rules and reason about action sequences, improving real-time decision-making, safety, and patient autonomy.
+
