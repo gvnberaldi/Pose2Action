@@ -19,7 +19,7 @@ The system pipeline consists of the following stages:
 This system aims to provide real-time assistance while preserving user privacy by avoiding the capture of detailed visual information.
 
 ### **System Architecture**
-![System Architecture](docs/images/full_system_architecture.jpg)
+![System Architecture](docs/images/full_framework_architecture.jpg)
 
 ---
 
