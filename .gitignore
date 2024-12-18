@@ -27,3 +27,5 @@ log_*
 /SPiKE/modules/pointnet2.egg-info/
 SPiKE/experiments/best_model.pth
 /SPiKE/datasets/BAD/
+/ST-RGCN/dataset/BAD
+/ST-RGCN/dataset/standard_skeleton/depth_map.bin
