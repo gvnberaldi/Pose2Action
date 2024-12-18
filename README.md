@@ -2,6 +2,8 @@
 
 This repository contains the implementation of a system for **Human Action Recognition (HAR)** using depth map data. The system is designed to assist individuals with dementia in bathroom settings by recognizing human actions in a privacy-preserving manner. The project integrates cutting-edge deep learning techniques, utilizing the **SPiKE** model for **3D Human Pose Estimation (HPE)** and a **Relational Graph Convolutional Network (RGCN)** for **action classification**.
 
+![Human Action Recognition](docs/images/har.jpg)
+
 ---
 
 ## **Overview of the System**
@@ -17,7 +19,7 @@ The system pipeline consists of the following stages:
 This system aims to provide real-time assistance while preserving user privacy by avoiding the capture of detailed visual information.
 
 ### **System Architecture**
-![System Architecture](docs/images/full_system_architecture.png)
+![System Architecture](docs/images/full_system_architecture.jpg)
 
 ---
 
@@ -32,10 +34,10 @@ The SPiKE model is a neural network designed to predict 3D human poses from poin
 > The model was fine-tuned on a custom dataset, **BAD**, annotated with 2D skeletons, to improve its performance in real-world settings.
 
 ### **Visualizing a Skeleton**
-![Skeleton Example](docs/images/3d_skeleton.png)
+![Skeleton Example](docs/images/3d_skeleton.jpg)
 
 ### **SPiKE Model Workflow**
-![SPiKE Workflow](docs/images/spike_architecture.png)
+![SPiKE Workflow](docs/images/spike_architecture.jpg)
 
 ---
 
@@ -46,10 +48,10 @@ The RGCN extends traditional graph neural networks to handle **spatial** and **t
 - **Action Classification**: Processes graph data to identify one of eight actions, including walking, sitting, and washing hands.
 
 ### **What is a Spatio-Temporal Graph?**
-![Spatio-Temporal Graph](docs/images/st_graph.png)
+![Spatio-Temporal Graph](docs/images/st_graph.jpg)
 
 ### **RGCN Architecture**
-![RGCN Architecture](docs/images/rgcn_model_architecture.png)
+![RGCN Architecture](docs/images/rgcn_model_architecture.jpg)
 
 ---
 
@@ -61,7 +63,7 @@ The system is trained and tested on the **BAD dataset**, a custom dataset of dep
 - **Actions**: Eight human actions like sitting, standing, and washing hands.
 
 ### **Dataset Example**
-![BAD Dataset Example](docs/images/dataset_example.png)
+![BAD Dataset Example](docs/images/dataset_example.jpg)
 
 ---
 
@@ -71,13 +73,13 @@ The system is trained and tested on the **BAD dataset**, a custom dataset of dep
 - Quantitative: High **mean Average Precision (mAP)** and **Percentage of Correct Keypoints (PCK)** across key joints.
 - Qualitative: Strong alignment of predicted skeletons with ground truth.
 
-![SPiKE Results](docs/images/spike_results.png)
+![SPiKE Results](docs/images/spike_results.jpg)
 
 ### **RGCN Model Results**
 - Quantitative: Consistently decreasing training/testing losses and increasing accuracies.
 - Qualitative: Accurate classification of human actions in testing scenarios.
 
-![RGCN Results](docs/images/rgcn_model_results.png)
+![RGCN Results](docs/images/rgcn_model_results.jpg)
 
 ---
 
