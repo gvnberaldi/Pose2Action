@@ -20,10 +20,10 @@ wandb/
 log_*
 
 # Ignore experiments
-/experiments/**/log/
+/SPiKE/experiments/**/log/
 
-/modules/build/
-/modules/dist/
-/modules/pointnet2.egg-info/
-experiments/best_model.pth
-/datasets/BAD/
+/SPiKE/modules/build/
+/SPiKE/modules/dist/
+/SPiKE/modules/pointnet2.egg-info/
+SPiKE/experiments/best_model.pth
+/SPiKE/datasets/BAD/
