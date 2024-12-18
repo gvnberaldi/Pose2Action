@@ -17,7 +17,7 @@ The system pipeline consists of the following stages:
 This system aims to provide real-time assistance while preserving user privacy by avoiding the capture of detailed visual information.
 
 ### **System Architecture**
-![System Architecture](docs/images/system_architecture.png)
+![System Architecture](docs/images/full_system_architecture.png)
 
 ---
 
@@ -32,10 +32,10 @@ The SPiKE model is a neural network designed to predict 3D human poses from poin
 > The model was fine-tuned on a custom dataset, **BAD**, annotated with 2D skeletons, to improve its performance in real-world settings.
 
 ### **Visualizing a Skeleton**
-![Skeleton Example](docs/images/skeleton_example.png)
+![Skeleton Example](docs/images/3d_skeleton.png)
 
 ### **SPiKE Model Workflow**
-![SPiKE Workflow](docs/images/spike_workflow.png)
+![SPiKE Workflow](docs/images/spike_architecture.png)
 
 ---
 
@@ -46,10 +46,10 @@ The RGCN extends traditional graph neural networks to handle **spatial** and **t
 - **Action Classification**: Processes graph data to identify one of eight actions, including walking, sitting, and washing hands.
 
 ### **What is a Spatio-Temporal Graph?**
-![Spatio-Temporal Graph](docs/images/spatio_temporal_graph.png)
+![Spatio-Temporal Graph](docs/images/st_graph.png)
 
 ### **RGCN Architecture**
-![RGCN Architecture](docs/images/rgcn_architecture.png)
+![RGCN Architecture](docs/images/rgcn_model_architecture.png)
 
 ---
 
@@ -61,7 +61,7 @@ The system is trained and tested on the **BAD dataset**, a custom dataset of dep
 - **Actions**: Eight human actions like sitting, standing, and washing hands.
 
 ### **Dataset Example**
-![BAD Dataset Example](docs/images/bad_dataset_example.png)
+![BAD Dataset Example](docs/images/dataset_example.png)
 
 ---
 
@@ -77,7 +77,7 @@ The system is trained and tested on the **BAD dataset**, a custom dataset of dep
 - Quantitative: Consistently decreasing training/testing losses and increasing accuracies.
 - Qualitative: Accurate classification of human actions in testing scenarios.
 
-![RGCN Results](docs/images/rgcn_results.png)
+![RGCN Results](docs/images/rgcn_model_results.png)
 
 ---
 
